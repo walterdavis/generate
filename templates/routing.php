@@ -16,7 +16,7 @@ foreach($models as $m){
 	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
 		include(APP_ROOT . '/_models/' . $m);
 		$m = substr($m,0,strrpos($m,'.'));
-		$navigation .= '<li><a href="/' . $m . '">' . ucfirst(str_replace('_',' ',$m)) . '</a></li>';
+		$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
 	}
 }
 $navigation .= '</ul>';
