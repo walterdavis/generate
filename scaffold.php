@@ -100,10 +100,16 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			if($k != 'id') {
 				$view_create .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
-				$view_show .= '	<p><strong>' . $k . '</strong><br />
+				if($v['Type'] == 'text'){
+					$view_show .= '	<p><strong>' . $k . '</strong></p>
+		<?= ActionView::simple_format(\'' . $k . '\',$object) ?>
+';
+				}else{
+					$view_show .= '	<p><strong>' . $k . '</strong><br />
 		<?= $object->h(\'' . $k . '\') ?>
 	</p>
 ';
+				}
 		}
 			$view_edit .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';

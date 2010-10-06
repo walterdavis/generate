@@ -126,6 +126,10 @@ Class MyActionView{
 		if($object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->id;
 		return $link;
 	}
-	
+	function simple_format($strKey,$object){
+		$out = '<p>' . nl2br($object->h($strKey)) . '</p>';
+		$out = preg_replace('/<br \/>\s+<br \/>/m',"</p>\n<p>",$out);
+		return $out . "\n";
+	}
 }
 ?>
