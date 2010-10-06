@@ -103,8 +103,10 @@ Class MyActionView{
 							$classname = 'date';
 						}elseif(preg_match('/password/',$arrField['Field'])){
 							$classname = 'password text';
-						}elseif(preg_match('/varchar/',$arrField['Type'])){
+						}elseif(preg_match('/char/',$arrField['Type'])){
 							$classname = 'text';
+						}elseif(preg_match('/int/',$arrField['Type'])){
+							$classname = 'integer';
 						}else{
 							$classname = '';
 						}

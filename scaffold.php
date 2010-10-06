@@ -195,7 +195,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= create_file($db . '/_views/layouts/index.html.php',$layout);
 		}
 	}else{
-		$out = '<form action="scaffold.php?table_name=' . $table_name . '" method="post">
+		$out = '<h1>' . substr($db,1) . '</h1>
+		<form action="scaffold.php?table_name=' . $table_name . '" method="post">
 		<p><label for="force">Force</label><input type="checkbox" name="force" value="1" id="force"/></p>';
 		
 		foreach($arrFields as $k => $v){
@@ -203,7 +204,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 				$out .= '<p><span class="field">id</span>(primary key)</p>';
 			}elseif(substr($k,-3) == '_id'){
 				$out .= '<p><span class="field">' . $k . '</span>(parent key)</p>';
-			}elseif(preg_match('/_at$|_on$/',$k)){
+			}elseif(preg_match('/_at$|_on$/',$k) && preg_match('/date/',$v['Type'])){
 				$out .= '<p><span class="field">' . $k . '</span>(timestamp)<input type="hidden" name="timestamps[' . $k . ']" value="' . $k . '" id="timestamps_' . $k . '"/></p>';
 			}else{
 				$regexp = (isset($_POST['regexp'][$k])) ? $_POST['regexp'][$k] : '';
