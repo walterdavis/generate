@@ -45,10 +45,10 @@ to begin. The system interprets the following field types at the moment:
 * Text will become a textarea
 * Date and DateTime columns will become a text input with a special HTML 
 classname for further processing with JavaScript
-* Any Date or DateTime column that ends in _at or _on will be treated as a special
+* Any Date or DateTime column that ends in \_at or \_on will be treated as a special
 timestamp. If the column is named created\_on or created\_at, or updated\_at or
 updated\_on, it will have special setter functions in the Model's `save()` method.
-* Any column that ends in _id will be treated as a foreign key from another table
+* Any column that ends in \_id will be treated as a foreign key from another table
 * Any table which has a foreign key in another table can choose to perform
 cascading deletes in its `destroy()` method.
 
