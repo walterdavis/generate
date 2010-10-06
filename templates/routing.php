@@ -10,16 +10,6 @@ session_start();
 $id = 0;
 $out = $flash = '';
 $page_title = $page_header = 'Site Name';
-$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
-$models = scandir(APP_ROOT . '/_models');
-foreach($models as $m){
-	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
-		include(APP_ROOT . '/_models/' . $m);
-		$m = substr($m,0,strrpos($m,'.'));
-		$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
-	}
-}
-$navigation .= '</ul>';
 require_once('_lib/MyActiveRecord.php');
 require_once('_lib/MyActionView.php');
 require_once('_lib/MyActionController.php');
@@ -32,6 +22,16 @@ class ActionView extends MyActionView{
 class ActionController extends MyActionController{
 
 }
+$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
+$models = scandir(APP_ROOT . '/_models');
+foreach($models as $m){
+	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
+		include(APP_ROOT . '/_models/' . $m);
+		$m = substr($m,0,strrpos($m,'.'));
+		$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
+	}
+}
+$navigation .= '</ul>';
 function flash($arrMessages,$strClass=''){
 	if(empty($strClass)) $strClass = 'flash';
 	$out = '<ul class="' . $strClass . '">';
