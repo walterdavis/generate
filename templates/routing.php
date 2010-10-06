@@ -7,6 +7,19 @@ define('DEFAULT_LIMIT', 'DEFLIMIT');
 define('APP_ROOT', dirname(__FILE__));
 date_default_timezone_set('TZ');
 session_start();
+$id = 0;
+$out = $flash = '';
+$page_title = $page_header = 'Site Name';
+$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
+$models = scandir(APP_ROOT . '/_models');
+foreach($models as $m){
+	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
+		include(APP_ROOT . '/_models/' . $m);
+		$m = substr($m,0,strrpos($m,'.'));
+		$navigation .= '<li><a href="/' . $m . '">' . ucfirst(str_replace('_',' ',$m)) . '</a></li>';
+	}
+}
+$navigation .= '</ul>';
 require_once('_lib/MyActiveRecord.php');
 require_once('_lib/MyActionView.php');
 require_once('_lib/MyActionController.php');
@@ -25,19 +38,7 @@ function flash($arrMessages,$strClass=''){
 	foreach((array)$arrMessages as $m) $out .=  '<li>' . $m . '</li>';
 	return $out . '</ul>';
 }
-$id = 0;
-$out = $flash = '';
-$page_title = $page_header = 'Site Name';
-$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
-$models = scandir(APP_ROOT . '/_models');
-foreach($models as $m){
-	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
-		include(APP_ROOT . '/_models/' . $m);
-		$m = substr($m,0,strrpos($m,'.'));
-		$navigation .= '<li><a href="/' . $m . '">' . ucfirst(str_replace('_',' ',$m)) . '</a></li>';
-	}
-}
-$navigation .= '</ul>';
+//routing happens here
 $segments = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
 if(!isset($segments[0]) || empty($segments[0])){
 	//add root view actions here
