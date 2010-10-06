@@ -50,7 +50,7 @@ if(!isset($segments[0]) || empty($segments[0])){
 		$model = new $className;
 		$controller = new $controllerName($model);
 		if(isset($segments[2]) && is_numeric(substr($segments[2],0,1)) && !is_numeric($segments[1])){
-			$id = preg_replace('/^([\d]+?)[^\d]*$/',"$1",$segments[2]);
+			$id = (int) preg_replace('/^([\d]+?)[^\d]*$/',"$1",$segments[2]);
 		}
 		if(isset($_POST['delete'])){
 			$segments[1] = 'delete';
