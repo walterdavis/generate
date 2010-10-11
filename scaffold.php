@@ -173,8 +173,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			chmod(dirname(__FILE__) . '/generated_code' . $dest,0664);
 			return '<p>Generated ' . $dest . '.</p>';
 		}
-		if(!file_exists(dirname(__FILE__) . '/generated_code')){
-			$out .= '<p>Warning! Create a folder in the same directory as scaffold.php called generated_code, and be sure to give it 777 permissions!</p>';
+		if(!file_exists(dirname(__FILE__) . '/generated_code') || (file_exists(dirname(__FILE__) . '/generated_code') && !is_writable(dirname(__FILE__) . '/generated_code'))){
+			$out .= '<p>Warning! Create a folder in the same directory as scaffold.php called <strong>generated_code</strong>, and be sure to give it <strong>777</strong> permissions!</p>';
 		}else{
 			$out .= create_directory($db);
 			$out .= create_directory($db . '/_models');
