@@ -102,7 +102,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ';
 				if($v['Type'] == 'text'){
 					$view_show .= '	<p><strong>' . $k . '</strong></p>
-		<?= ActionView::simple_format(\'' . $k . '\',$object) ?>
+	<?= ActionView::simple_format(\'' . $k . '\',$object) ?>
 ';
 				}else{
 					$view_show .= '	<p><strong>' . $k . '</strong><br />
@@ -122,7 +122,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		$view_edit .= '	<p>' . ActionView::Input('save') . ActionView::Input('delete') . ' | <?= ActionView::link_to("Index","index",$object)?></p>
 </form>
 ';
-		$view_show .= '	<?= \'	<p>\' . ActionView::link_to("Index","index",$object) . \' | \' . ActionView::link_to("Edit","edit",$object) . \'</p>\' ?>
+		$view_show .= '	<?= \'<p>\' . ActionView::link_to("Index","index",$object) . \' | \' . ActionView::link_to("Edit","edit",$object) . \'</p>\' ?>
 ';
 		$view_index .= '	</tr>
 \';

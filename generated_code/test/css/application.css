@@ -1,0 +1,109 @@
+body, html {
+	background-color: #cecece;
+	margin: 0;
+	padding: 0;
+	min-height: 100%;
+	font: .9em "Lucida Grande", Lucida, Verdana, sans-serif;
+}
+
+#PageDiv {
+	width: 85%;
+	background-color: #fff;
+	border: 3px solid #909090;
+	margin: 10px auto 14px;
+	padding: 14px 20px;
+}
+
+label {
+	display: inline-block;
+	width: 162px;
+	margin-right: 8px;
+	text-align: right;
+	vertical-align: top;
+}
+
+.indent {
+	margin-right: 170px;
+}
+
+input.text, textarea {
+	width: 60%;
+}
+
+.flash, .error {
+	margin-top: 0;
+	padding: 12px 6px 12px 80px;
+	border-style: solid;
+	border-color: #6b9974;
+	border-width: 4px;
+	background-color: #d0ffc1;
+	background-repeat: no-repeat;
+	background-position: left top;
+	background-image: url(../_images/flash.gif);
+	margin-bottom: 12px;
+	position: relative;
+}
+
+.error {
+	border-color: #dc8c59;
+	background-color: #ffff99;
+	background-image: url(../_images/error.gif);
+}
+
+.flash li {
+	list-style-type: disc;
+	border-style: none;
+	float: none;
+	color: #000;
+	font: 12px "Lucida Grande", Lucida, Verdana, sans-serif;
+}
+
+table {
+	border-collapse: collapse;
+	font: 11px/11px "Lucida Grande", Lucida, Verdana, sans-serif;
+	border-top: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+td, th {
+	padding: 3px 6px;
+	border-left: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+	vertical-align: top;
+}
+
+td:first-child {
+	white-space: nowrap;
+}
+
+th {
+	text-align: left;
+	color: #ccc;
+	background-color: #808080;
+	white-space: nowrap;
+}
+
+ul.navigation {
+	list-style-type: none;
+	width: 85%;
+	margin: 14px auto 8px;
+	padding: 12px 22px;
+}
+
+ul.navigation li {
+	display: inline;
+	margin: 0;
+	padding: 0 6px;
+}
+
+ul.navigation li a {
+	color: #333;
+	text-decoration: none;
+	font-size: 12px;
+}
+
+ul.navigation li:first-child {
+	padding-left: 0;
+}
