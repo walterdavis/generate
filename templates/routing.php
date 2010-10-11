@@ -42,33 +42,44 @@ function flash($arrMessages,$strClass=''){
 $segments = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
 if(!isset($segments[0]) || empty($segments[0])){
 	//add root view actions here
-}else{
-	if(@file_exists(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php')){
-		require_once(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php');
-		$className = ucfirst(strtolower($segments[0]));
-		$controllerName = $className . 'Controller';
-		$model = new $className;
-		$controller = new $controllerName($model);
-		if(isset($segments[2]) && is_numeric(substr($segments[2],0,1)) && !is_numeric($segments[1])){
-			$id = (int) preg_replace('/^([\d]+?)[^\d]*$/',"$1",$segments[2]);
-		}
-		if(isset($_POST['delete'])){
-			$segments[1] = 'delete';
-		}
-		if(isset($segments[1]) && method_exists($controller,$segments[1])){
-			$out = $controller->{$segments[1]}($id);
-			$page_title .= ' | ' . ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
-			$page_header = ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
-		}else{
-			$out = $controller->index();
-			$page_title .= ' | ' . ucfirst($segments[0]);
-			$page_header = 'Index ' . ucfirst($segments[0]);
-		}
+	//$segments[0] = 'some_controller';
+	//$segments[1] = 'some_action';
+}
+
+if(@file_exists(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php')){
+	require_once(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php');
+	/**
+	 * Naming Convention:
+	 * db: people
+	 * model: class People (people.php)
+	 * controller: class PeopleController (people_controller.php)
+	 */
+	$className = ucfirst(strtolower($segments[0]));
+	$controllerName = $className . 'Controller';
+	$model = ActiveRecord::Create($className); //blank model for default forms etc.
+	$controller = new $controllerName($model);
+	if(isset($segments[2]) && is_numeric(substr($segments[2],0,1)) && !is_numeric($segments[1])){
+		$id = (int) preg_replace('/^([\d]+?)[^\d]*$/',"$1",$segments[2]);
 	}
+	if(isset($_POST['delete'])){
+		//allow button name to control action
+		$segments[1] = 'delete';
+	}
+	if(isset($segments[1]) && method_exists($controller,$segments[1])){
+		$out = $controller->{$segments[1]}($id);
+		$page_title .= ' | ' . ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
+		$page_header = ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
+	}else{
+		$out = $controller->index();
+		$page_title .= ' | ' . ucfirst($segments[0]);
+		$page_header = 'Index ' . ucfirst($segments[0]);
+	}
+	if(isset($_SESSION["flash"])){
+		$flash = $_SESSION["flash"];
+		unset($_SESSION["flash"]);
+	}
+	include(APP_ROOT . '/_views/layouts/index.html.php');
+}else{
+	header('x',true,404); //sends default 404 as configured by your server
 }
-if(isset($_SESSION["flash"])){
-	$flash = $_SESSION["flash"];
-	unset($_SESSION["flash"]);
-}
-include(APP_ROOT . '/_views/layouts/index.html.php');
 ?>
