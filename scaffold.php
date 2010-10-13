@@ -26,6 +26,20 @@ function get_fields_from_table($table_name){
 	}
 	return $arrFields;
 }
+function is_linking_table($table_name,$all_tables){
+	if(false !== strpos($table_name,'_')){
+		$parts = explode('_',$table_name);
+		$matches = 0;
+		foreach($parts as $part){
+			if(in_array($part, $all_tables)){
+				//this might be a linking table
+				$matches ++;
+			}
+		}
+		return ($matches == 2);
+	}
+	return false;
+}
 $out = '';
 $table_name = (isset($_GET['table_name'])) ? $_GET['table_name'] : '';
 $arrFields = array();
@@ -60,11 +74,17 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		$code .= '		return parent::save();
 	}
 ';
-		if(isset($_POST['children'])){
+		if(isset($_POST['children']) || isset($_POST['habtm'])){
 			$code .= "\tfunction destroy(){\n";
 			foreach($_POST['children'] as $k => $v){
 				if($v > 0){
 					$code .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
+';
+				}
+			}
+			foreach($_POST['habtm'] as $k => $v){
+				if($v > 0){
+					$code .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
 ';
 				}
 			}
@@ -223,7 +243,12 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		//scan for children
 		foreach($tables as $table){
 			if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
-				$out .= '<p><span class="field">' . $table . '</span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
+				if(! is_linking_table($table,$tables)){
+					$out .= '<p><span class="field">' . $table . '</span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
+				}else{
+					$partner = preg_replace('/_?' . $table_name . '_?/','',$table);
+					$out .= '<p><span class="field">' . $partner . '</span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
+				}
 			}
 		}
 		$out .= '<p><input type="submit" name="generate_wrapper" class="indent" value="Generate" id="generate_wrapper"/> <a href="scaffold.php">Start Over</a></p></form>';
@@ -231,7 +256,11 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 }else{
 	$out .= '<h1>Choose a table</h1>';
 	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul>';
-	foreach($tables as $table) $out .= '<li><a href="scaffold.php?table_name=' . $table . '">' . $table . '</a></li>';
+	foreach($tables as $table){
+		if( ! is_linking_table($table,$tables)){
+			$out .= '<li><a href="scaffold.php?table_name=' . $table . '">' . $table . '</a></li>';
+		}
+	}
 	$out .= '</ul>';
 }
 ?>
