@@ -221,7 +221,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= create_file($db . '/_views/layouts/index.html.php',$layout);
 		}
 	}else{
-		$out = '<h1>' . substr($db,1) . '</h1>
+		$out = '<h1>' . substr($db,1) . '/' . $table_name . '</h1>
 		<form action="scaffold.php?table_name=' . $table_name . '" method="post">
 		<p><label for="force">Force</label><input type="checkbox" name="force" value="1" id="force"/></p>';
 		
@@ -244,10 +244,10 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		foreach($tables as $table){
 			if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
 				if(! is_linking_table($table,$tables)){
-					$out .= '<p><span class="field">' . $table . '</span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
+					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
 				}else{
 					$partner = preg_replace('/_?' . $table_name . '_?/','',$table);
-					$out .= '<p><span class="field">' . $partner . '</span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
+					$out .= '<p><span class="field"><strong>' . $partner . '</strong></span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
 				}
 			}
 		}
