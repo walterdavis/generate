@@ -4,9 +4,10 @@ This system creates a working MAR project by reflecting over your database and
 generating a set of folders and static PHP files containing the basic CRUD
 operations for the selected tables.
 
-This initial release only supports stand-alone tables and provides limited
-support for parent/child relationships. Future versions will generate 
-many-to-many relationship views and `destroy()` functions.
+This release lists stand-alone tables (not linking tables) and provides limited
+support for parent/child relationships and many-to-many relationships. Each
+model's destroy method can clean up child and related records if you choose
+that option in the generator form.
 
 ##Install and Setup
 To use, move the entire `generate` folder to a Web server, and check/change 

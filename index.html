@@ -23,117 +23,118 @@
 
 <body>
 	<div id="PageDiv">
-	<h1 id="scaffoldgeneratorformyactiverecordandmyactionpack">Scaffold Generator for MyActiveRecord and MyActionPack</h1>
+		<h1 id="scaffoldgeneratorformyactiverecordandmyactionpack">Scaffold Generator for MyActiveRecord and MyActionPack</h1>
 
-	<p>This system creates a working MAR project by reflecting over your database and 
-	generating a set of folders and static PHP files containing the basic CRUD
-	operations for the selected tables.</p>
+		<p>This system creates a working MAR project by reflecting over your database and 
+		generating a set of folders and static PHP files containing the basic CRUD
+		operations for the selected tables.</p>
 
-	<p>This initial release only supports stand-alone tables and provides limited
-	support for parent/child relationships. Future versions will generate 
-	many-to-many relationship views and <code>destroy()</code> functions.</p>
+		<p>This release lists stand-alone tables (not linking tables) and provides limited
+		support for parent/child relationships and many-to-many relationships. Each
+		model&#8217;s destroy method can clean up child and related records if you choose
+		that option in the generator form.</p>
 
-	<h2 id="installandsetup">Install and Setup</h2>
+		<h2 id="installandsetup">Install and Setup</h2>
 
-	<p>To use, move the entire <code>generate</code> folder to a Web server, and check/change 
-	permissions on the <code>generate/generated_files</code> sub-folder so that your Apache/PHP 
-	process can write to that sub-folder.</p>
+		<p>To use, move the entire <code>generate</code> folder to a Web server, and check/change 
+		permissions on the <code>generate/generated_files</code> sub-folder so that your Apache/PHP 
+		process can write to that sub-folder.</p>
 
-	<p>Open the <code>scaffold.php</code> file with a text editor, and update the configuration
-	at the top of the file to match your server. These credentials will be copied
-	into the generated site, so you need to run this on the same server as you
-	intend to use to serve the final project. </p>
+		<p>Open the <code>scaffold.php</code> file with a text editor, and update the configuration
+		at the top of the file to match your server. These credentials will be copied
+		into the generated site, so you need to run this on the same server as you
+		intend to use to serve the final project. </p>
 
-	<p>Your site files will be generated (and re-generated) within a folder named
-	exactly the same as your database, within the <code>generated_files</code> directory.
-	So if you entered the following DSN for your database: <code>user:pass@localhost/test</code>
-	you would find a folder at <code>generated_files/test</code> containing all of your site
-	documents and and an .htaccess file after you generate from your first table.</p>
+		<p>Your site files will be generated (and re-generated) within a folder named
+		exactly the same as your database, within the <code>generated_files</code> directory.
+		So if you entered the following DSN for your database: <code>user:pass@localhost/test</code>
+		you would find a folder at <code>generated_files/test</code> containing all of your site
+		documents and and an .htaccess file after you generate from your first table.</p>
 
-	<p>For bonus points, set up your Web server to host a site from <code>generated_files/[dbname]</code>
-	so you can view your progress as you go. You will need a basic Apache server
-	with the mod_rewrite engine installed and enabled, and AllowOverrides:all set 
-	in the server&#8217;s configuration file.</p>
+		<p>For bonus points, set up your Web server to host a site from <code>generated_files/[dbname]</code>
+		so you can view your progress as you go. You will need a basic Apache server
+		with the mod_rewrite engine installed and enabled, and AllowOverrides:all set 
+		in the server&#8217;s configuration file.</p>
 
-	<p>Once you have finished the site generation process, you can move the [dbname]
-	folder anywhere you like on your Web server, and host your site from there.
-	Please note &#8212; the .htaccess and routing.php files are configured to work in the
-	site root folder. You can change this, but by default, the site will only work
-	when run from a dedicated hostname, as opposed to a sub-folder.</p>
+		<p>Once you have finished the site generation process, you can move the [dbname]
+		folder anywhere you like on your Web server, and host your site from there.
+		Please note &#8212; the .htaccess and routing.php files are configured to work in the
+		site root folder. You can change this, but by default, the site will only work
+		when run from a dedicated hostname, as opposed to a sub-folder.</p>
 
-	<h2 id="processyourfirsttable">Process Your First Table</h2>
+		<h2 id="processyourfirsttable">Process Your First Table</h2>
 
-	<p>Visit <a href="./scaffold.php">./scaffold.php</a> in a browser. You should see a list of
-	tables within your database. Click on the first table you wish to work from
-	to begin. The system interprets the following field types at the moment:</p>
+		<p>Visit <a href="./scaffold.php">./scaffold.php</a> in a browser. You should see a list of
+		tables within your database. Click on the first table you wish to work from
+		to begin. The system interprets the following field types at the moment:</p>
 
-	<ul>
-	<li>Varchar or Char or Int will become a text input</li>
-	<li>Tinyint(1) will become a boolean (checkbox)</li>
-	<li>Text will become a textarea</li>
-	<li>Date and DateTime columns will become a text input with a special HTML 
-	classname for further processing with JavaScript</li>
-	<li>Any Date or DateTime column that ends in _at or _on will be treated as a special
-	timestamp. If the column is named created_on or created_at, or updated_at or
-	updated_on, it will have special setter functions in the Model&#8217;s <code>save()</code> method.</li>
-	<li>Any column that ends in _id will be treated as a foreign key from another table</li>
-	<li>Any table which has a foreign key in another table can choose to perform
-	cascading deletes in its <code>destroy()</code> method.</li>
-	</ul>
+		<ul>
+		<li>Varchar or Char or Int will become a text input</li>
+		<li>Tinyint(1) will become a boolean (checkbox)</li>
+		<li>Text will become a textarea</li>
+		<li>Date and DateTime columns will become a text input with a special HTML 
+		classname for further processing with JavaScript</li>
+		<li>Any Date or DateTime column that ends in _at or _on will be treated as a special
+		timestamp. If the column is named created_on or created_at, or updated_at or
+		updated_on, it will have special setter functions in the Model&#8217;s <code>save()</code> method.</li>
+		<li>Any column that ends in _id will be treated as a foreign key from another table</li>
+		<li>Any table which has a foreign key in another table can choose to perform
+		cascading deletes in its <code>destroy()</code> method.</li>
+		</ul>
 
-	<p>The <code>id</code> column is not editable, as it is always your primary key.</p>
+		<p>The <code>id</code> column is not editable, as it is always your primary key.</p>
 
-	<h3 id="validations">Validations</h3>
+		<h3 id="validations">Validations</h3>
 
-	<p>The following validations are included:</p>
+		<p>The following validations are included:</p>
 
-	<ul>
-	<li><code>validate_regexp()</code> Enter a regular expression, including delimiters, properly 
-	escaped. The column must match this regexp in order to pass</li>
-	<li><code>validate_existence()</code> The field must not be empty to pass</li>
-	<li><code>validate_uniqueness_of()</code> The field must not match the same field in any 
-	other records in the table (note &#8212; this does not include a test for empty, 
-	combine with <code>validate_existence()</code> to also test for that)</li>
-	<li><code>validate_email()</code> This is a combo validator, which tests for presence and 
-	format</li>
-	</ul>
+		<ul>
+		<li><code>validate_regexp()</code> Enter a regular expression, including delimiters, properly 
+		escaped. The column must match this regexp in order to pass</li>
+		<li><code>validate_existence()</code> The field must not be empty to pass</li>
+		<li><code>validate_uniqueness_of()</code> The field must not match the same field in any 
+		other records in the table (note &#8212; this does not include a test for empty, 
+		combine with <code>validate_existence()</code> to also test for that)</li>
+		<li><code>validate_email()</code> This is a combo validator, which tests for presence and 
+		format</li>
+		</ul>
 
-	<p>Mix and match the validations as you like.</p>
+		<p>Mix and match the validations as you like.</p>
 
-	<h3 id="cascadingdelete">Cascading Delete</h3>
+		<h3 id="cascadingdelete">Cascading Delete</h3>
 
-	<p>Dependent delete will be offered as an option if the table includes a field 
-	named [some other table]_id. If so, checking this option will include the 
-	logic to clean up dependent records from that other table. For example, if 
-	you delete a Blog Post, all of the Comments with a matching posts_id will 
-	be deleted at the same time. You don&#8217;t need to choose this if you don&#8217;t need it.</p>
+		<p>Dependent delete will be offered as an option if the table includes a field 
+		named [some other table]_id. If so, checking this option will include the 
+		logic to clean up dependent records from that other table. For example, if 
+		you delete a Blog Post, all of the Comments with a matching posts_id will 
+		be deleted at the same time. You don&#8217;t need to choose this if you don&#8217;t need it.</p>
 
-	<h2 id="generatethesite">Generate the Site</h2>
+		<h2 id="generatethesite">Generate the Site</h2>
 
-	<p>When you press the <strong>Generate</strong> button, all of your files will be created and 
-	listed. Click the <strong>Start Over</strong> link to select another table and begin this 
-	process again.</p>
+		<p>When you press the <strong>Generate</strong> button, all of your files will be created and 
+		listed. Click the <strong>Start Over</strong> link to select another table and begin this 
+		process again.</p>
 
-	<p>Once you have generated the files for a particular table, they will not be 
-	overwritten unless you check the &#8220;Force&#8221; checkbox at the top of the screen. 
-	If you make changes to your database (add, remove or change columns) you will 
-	need to check this option to get a fresh set of interface files.</p>
+		<p>Once you have generated the files for a particular table, they will not be 
+		overwritten unless you check the &#8220;Force&#8221; checkbox at the top of the screen. 
+		If you make changes to your database (add, remove or change columns) you will 
+		need to check this option to get a fresh set of interface files.</p>
 
-	<h2 id="installthesite">Install the Site</h2>
+		<h2 id="installthesite">Install the Site</h2>
 
-	<p>Move the generated folder [table name] into a new location in your Web server, 
-	and update your configuration files to serve the site from that new location.</p>
+		<p>Move the generated folder [table name] into a new location in your Web server, 
+		and update your configuration files to serve the site from that new location.</p>
 
-	<p>You can edit any of the files, they are all static and do not rely on any
-	<em>magic</em> to work correctly. File <strong>naming</strong> is however very important. Just
-	as in Rails or its various clones, the location and name of files is used
-	to link up the various parts of the Model / View / Controller stack.</p>
+		<p>You can edit any of the files, they are all static and do not rely on any
+		<em>magic</em> to work correctly. File <strong>naming</strong> is however very important. Just
+		as in Rails or its various clones, the location and name of files is used
+		to link up the various parts of the Model / View / Controller stack.</p>
 
-	<p>The content of the Model, View and Controller files is just a suggestion to
-	get you started. Feel free to add or delete methods to the controller, which
-	will be mapped automatically to matching URLs. [model]/[controller method]/[id]
-	is the basic idea. This strategy is set in the routing.php file, and can be
-	modified there.</p>
+		<p>The content of the Model, View and Controller files is just a suggestion to
+		get you started. Feel free to add or delete methods to the controller, which
+		will be mapped automatically to matching URLs. [model]/[controller method]/[id]
+		is the basic idea. This strategy is set in the routing.php file, and can be
+		modified there.</p>
 </div>
 
 </body>
