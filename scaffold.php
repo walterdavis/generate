@@ -254,7 +254,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		$out .= '<p><input type="submit" name="generate_wrapper" class="indent" value="Generate" id="generate_wrapper"/> <a href="scaffold.php">Start Over</a></p></form>';
 	}
 }else{
-	$out .= '<h1>Choose a table</h1>';
+	$out .= '<h1>Choose a table in ' . substr($db,1) . '</h1>';
 	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul>';
 	foreach($tables as $table){
 		if( ! is_linking_table($table,$tables)){
