@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors','on');
 error_reporting(E_ALL);
-define('MYACTIVERECORD_CONNECTION_STR', 'mysql://waltd:@localhost/test');
+define('MYACTIVERECORD_CONNECTION_STR', 'mysql://waltd:testpass@localhost/test');
 define('MYACTIVERECORD_CHARSET', 'UTF-8');
 define('DEFAULT_LIMIT', '1000');
 date_default_timezone_set('US/Eastern');
@@ -133,7 +133,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		}
 			$view_edit .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
-			$view_index .= '		<td>\' . $object->h(\'' . $k . '\') . \'</td>
+			$view_index .= ($v['Type'] == 'tinyint(1)') ? '		<td>\' . (($object->' . $k . ' > 0) ? \'✓\' : \'\') . \'</td>
+' : '		<td>\' . $object->h(\'' . $k . '\') . \'</td>
 ';
 		}
 		$view_create .= '	<p>' . ActionView::Input('save') . ' | <?= ActionView::link_to("Cancel","index",$object)?></p>
