@@ -232,6 +232,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 				$out .= '<p><span class="field">' . $k . '</span>(parent key)</p>';
 			}elseif(preg_match('/_at$|_on$/',$k) && preg_match('/date/',$v['Type'])){
 				$out .= '<p><span class="field">' . $k . '</span>(timestamp)<input type="hidden" name="timestamps[' . $k . ']" value="' . $k . '" id="timestamps_' . $k . '"/></p>';
+			}elseif($v['Type'] == 'tinyint(1)'){
+				$out .= '<p><span class="field">' . $k . '</span>(checkbox) <label for="existence_' . $k . '"><input type="hidden" name="existence[' . $k . ']" value="0" /><input type="checkbox" name="existence[' . $k . ']" value="1" id="existence_' . $k . '"/> Validate existence</label></p>';
 			}else{
 				$regexp = (isset($_POST['regexp'][$k])) ? $_POST['regexp'][$k] : '';
 				$out .= '<p><span class="field">' . $k . '</span>Validate: <label for="regexp_' . $k . '">regexp</label><input type="text" name="regexp[' . $k . ']" value="' . $regexp . '" id="regexp_' . $k . '"/>

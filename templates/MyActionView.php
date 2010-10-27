@@ -90,7 +90,7 @@ Class MyActionView{
 			switch ($arrField['Type']) {
 				case 'tinyint(1)':
 					//boolean
-					$out = '<label for="' . $name . '">' . $name . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" class="boolean" />';
+					$out = '<label for="' . $name . '">' . $name . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" class="boolean"<?= ($object->' . $name . ' > 0) ? \' checked="checked"\' : \'\' ?> />';
 					break;
 				case 'text':
 					$out = '<label for="' . $name . '">' . $name . '</label><textarea name="' . $name . '" rows="8" cols="40"><?=$object->h(\'' . $name . '\')?></textarea>';
