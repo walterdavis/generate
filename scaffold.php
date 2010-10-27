@@ -257,7 +257,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	$out .= '<h1>Choose a table in “' . substr($db,1) . '”</h1>';
 	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul>';
 	foreach($tables as $table){
-		if( ! is_linking_table($table,$tables)){
+		if( ! is_linking_table($table,$tables) && in_array('id',array_keys(get_fields_from_table($table)))){
 			$out .= '<li><a href="scaffold.php?table_name=' . $table . '">' . $table . '</a></li>';
 		}
 	}
