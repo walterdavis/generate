@@ -16,6 +16,9 @@ class ActionView extends MyActionView{
 }
 $db = parse_url(MYACTIVERECORD_CONNECTION_STR);
 $db = $db['path'];
+function __autoload($class_name) {
+	require (dirname(__FILE__) . $db . '/_models/' . $class_name . '.php');
+}
 function get_fields_from_table($table_name){
 	$arrFields = array();
 	if( $rscResult = ActiveRecord::Query("SHOW COLUMNS FROM $table_name") ){

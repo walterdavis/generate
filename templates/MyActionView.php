@@ -42,18 +42,17 @@ Class MyActionView{
 	}
 	
 
-	function parent_picker($strKey,$boolCombo = false){
+	function ParentPicker($object, $strKey,$boolCombo = false){
+		if(!$boolCombo && MyActiveRecord::AllowNull(get_class($object),$strKey)) $boolCombo = true;
 		$combo = ($boolCombo) ? ' class="combo"' : '';
 		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"' . $combo . '>';
 		if($boolCombo) $out .= '<option value="" label=""></option>';
 		$model = substr($strKey,0,-3);
-		$columns = array_keys(MyActiveRecord::Columns($model));
-		array_shift($columns);
-		$name = array_shift($columns);
+		$name = MyActiveRecord::Label($model);
 		$objects = MyActiveRecord::FindAll($model,null,$name . ' ASC');
 		foreach($objects as $o) {
 			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
-			$out .= ($this->$strKey == $o->$name) ? ' selected="selected"' : '';
+			$out .= ($object->$strKey == $o->$name) ? ' selected="selected"' : '';
 			$out .= '>' . $o->h($name) . '</option>';
 		}
 		return $out . '</select>';
@@ -84,6 +83,13 @@ Class MyActionView{
 			$out = '<label for="save">&nbsp;</label><input type="submit" name="save" value="Save" id="save" class="save" />';
 		}elseif($name == 'delete'){
 			$out = '&nbsp; <input type="submit" name="delete" value="Delete" id="delete" class="delete" />';
+		}elseif(substr($name,-3) == '_id' && MyActiveRecord::TableExists(substr($name, 0, -3))){
+			$parent_name = substr($name, 0, -3);
+			$out = '<label for="' . $name . '">' . $parent_name . '</label>';
+			$out .= '
+<?php
+	print ActionView::ParentPicker($object,\'' . $name . '\');
+?>';
 		}elseif(isset($arrField['Field']) && (preg_match('/password/',$arrField['Field'])) || (isset($arrField['Type']) && (preg_match('/password/',$arrField['Type'])))){
 			$out = '<label for="' . $name . '">' . $name . '</label><input type="password" class="password" name="' . $name . '" value="" id="' . $name . '"/>';
 		}else{

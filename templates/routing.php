@@ -22,11 +22,18 @@ class ActionView extends MyActionView{
 class ActionController extends MyActionController{
 
 }
+function __autoload($class_name) {
+	if(!file_exists(APP_ROOT . '/_models/' . $class_name . '.php')){
+		die('Could not load <b>' . $class_name . '</b> class. Make sure you have generated it first.');
+	}else{
+		@require(APP_ROOT . '/_models/' . $class_name . '.php');
+	}
+}
 $navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
 $models = scandir(APP_ROOT . '/_models');
 foreach($models as $m){
 	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
-		include(APP_ROOT . '/_models/' . $m);
+		require_once(APP_ROOT . '/_models/' . $m);
 		$m = substr($m,0,strrpos($m,'.'));
 		$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
 	}
