@@ -595,6 +595,26 @@ class MyActiveRecord
 			return false;
 		}
 	}
+	
+	/**
+	 * Provide the first human-readable field name in the model.
+	 * Skips over any numeric field and id specifically, and returns the first string-based property.
+	 *
+	 * @param string $strClass The model to inspect
+	 * @return string The name of the first human-readable field in the object
+	 * @author Walter Lee Davis
+	 */
+	function Label( $strClass ){
+		$columns = MyActiveRecord::Columns($strClass);
+		$name = '';
+		foreach($columns as $k => $v){
+			if(empty($name) && $k != 'id' && preg_match('/char/',$v['Type'])){
+				$name = $k;
+				break;
+			}
+		}
+		return $name;
+	}
 		
 	/**
 	 * Returns an array of objects of class strClass mapped from SQL query 
