@@ -17,7 +17,11 @@ class ActionView extends MyActionView{
 $db = parse_url(MYACTIVERECORD_CONNECTION_STR);
 $db = $db['path'];
 function __autoload($class_name) {
-	require (dirname(__FILE__) . $db . '/_models/' . $class_name . '.php');
+	if(!file_exists(dirname(__FILE__) . $db . '/_models/' . $class_name . '.php')){
+		trigger_error('Could not load the “' . $class_name . '” class. Make sure you have generated it before trying again.', E_USER_ERROR);
+	}else{
+		require (dirname(__FILE__) . $db . '/_models/' . $class_name . '.php');
+	}
 }
 function get_fields_from_table($table_name){
 	$arrFields = array();

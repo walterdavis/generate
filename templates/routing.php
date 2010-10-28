@@ -24,7 +24,7 @@ class ActionController extends MyActionController{
 }
 function __autoload($class_name) {
 	if(!file_exists(APP_ROOT . '/_models/' . $class_name . '.php')){
-		die('Could not load <b>' . $class_name . '</b> class. Make sure you have generated it first.');
+		trigger_error('Could not load the “' . $class_name . '” class. Make sure you have generated it before trying again.', E_USER_ERROR);
 	}else{
 		@require(APP_ROOT . '/_models/' . $class_name . '.php');
 	}
