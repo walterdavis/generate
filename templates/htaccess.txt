@@ -1,3 +1,7 @@
+# If nothing seems to work correctly, try uncommenting the following line:
+#php_flag short_open_tag on
+# If that causes the entire server to stop working, you will need to enable
+# "short open tags" in your php.ini file, and re-comment that line.
 Options -Indexes
 DirectoryIndex _routing.php
 Options -MultiViews
