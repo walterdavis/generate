@@ -72,7 +72,7 @@
 		<h2 id="install_and_setup">Install and Setup</h2>
 
 		<p>To use, move the entire <code>generate</code> folder to a Web server, and check/change 
-		permissions on the <code>generate/generated_files</code> sub-folder so that your Apache/PHP 
+		permissions on the <code>generate/generated_code</code> sub-folder so that your Apache/PHP 
 		process can write to that sub-folder.</p>
 
 		<p>Open the <code>scaffold.php</code> file with a text editor, and update the configuration
@@ -81,12 +81,12 @@
 		intend to use to serve the final project, or change the generated config file when you deploy. </p>
 
 		<p>Your site files will be generated (and re-generated) within a folder named
-		exactly the same as your database, within the <code>generated_files</code> directory.
+		exactly the same as your database, within the <code>generated_code</code> directory.
 		So if you entered the following DSN for your database: <code>user:pass@localhost/test</code>
-		you would find a folder at <code>generated_files/test</code> containing all of your site
+		you would find a folder at <code>generated_code/test</code> containing all of your site
 		documents and and an <code>.htaccess</code> file after you generate from your first table.</p>
 
-		<p>For bonus points, set up your Web server to host a site from <code>generated_files/[dbname]</code>
+		<p>For bonus points, set up your Web server to host a site from <code>generated_code/[dbname]</code>
 		so you can view your progress as you go. </p>
 
 		<p>Once you have finished the site generation process, you can move the <code>[dbname]</code>

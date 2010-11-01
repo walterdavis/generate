@@ -40,7 +40,7 @@ this change in your `php.ini` file instead. See the `.htaccess` file for instruc
 
 ##Install and Setup
 To use, move the entire `generate` folder to a Web server, and check/change 
-permissions on the `generate/generated_files` sub-folder so that your Apache/PHP 
+permissions on the `generate/generated_code` sub-folder so that your Apache/PHP 
 process can write to that sub-folder.
 
 Open the `scaffold.php` file with a text editor, and update the configuration
@@ -49,12 +49,12 @@ into the generated site, so you need to either run this on the same server as yo
 intend to use to serve the final project, or change the generated config file when you deploy. 
 
 Your site files will be generated (and re-generated) within a folder named
-exactly the same as your database, within the `generated_files` directory.
+exactly the same as your database, within the `generated_code` directory.
 So if you entered the following DSN for your database: `user:pass@localhost/test`
-you would find a folder at `generated_files/test` containing all of your site
+you would find a folder at `generated_code/test` containing all of your site
 documents and and an `.htaccess` file after you generate from your first table.
 
-For bonus points, set up your Web server to host a site from `generated_files/[dbname]`
+For bonus points, set up your Web server to host a site from `generated_code/[dbname]`
 so you can view your progress as you go. 
 
 Once you have finished the site generation process, you can move the `[dbname]`
