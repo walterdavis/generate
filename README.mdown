@@ -27,7 +27,7 @@ and join tables. (More about that below.)
 
 ##Server Requirements
 You will need a basic Apache server with the mod_rewrite engine installed and enabled, 
-and AllowOverrides:all set in the server's configuration file. You need PHP5 (tested on 5.3)
+and `AllowOverrides:all` set in the server's configuration file. You need PHP5 (tested on 5.3)
 for various automagical features, and MySQL 4.1 or better (tested on 5.1).
 
 You will need access to a MySQL server, and a user with the necessary privileges to 
