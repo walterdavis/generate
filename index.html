@@ -107,9 +107,9 @@
 		<li>Text will become a textarea</li>
 		<li>Date and DateTime columns will become a text input with a special HTML 
 		classname for further processing with JavaScript</li>
-		<li>Any Date or DateTime column that ends in _at or _on will be treated as a special
-		timestamp. If the column is named created_on or created_at, or updated_at or
-		updated_on, it will have special setter functions in the Model&#8217;s <code>save()</code> method.</li>
+		<li>Any Date or DateTime column that ends in <code>_at</code> or <code>_on</code> will be treated as a special
+		timestamp. If the column is named <code>created_on</code> or <code>created_at</code>, or <code>updated_at</code> or
+		<code>updated_on</code>, it will have special setter functions in the Model&#8217;s <code>save()</code> method.</li>
 		<li>Any column that is named <code>[other table name]_id</code> will be treated as a foreign key from that table</li>
 		<li>Any table which has a foreign key in another table can choose to perform
 		cascading deletes in its <code>destroy()</code> method.</li>
