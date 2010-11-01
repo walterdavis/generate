@@ -6,13 +6,15 @@ define('MYACTIVERECORD_CHARSET', 'MARCHAR');
 define('DEFAULT_LIMIT', 'DEFLIMIT');
 define('APP_ROOT', dirname(__FILE__));
 date_default_timezone_set('TZ');
-session_start();
-$id = 0;
-$out = $flash = '';
 $page_title = $page_header = 'Site Name';
-require_once('_lib/MyActiveRecord.php');
-require_once('_lib/MyActionView.php');
-require_once('_lib/MyActionController.php');
+$id = 0;
+$out = $flash = $head = '';
+session_start();
+require_once('_app/lib/MyActiveRecord.php');
+require_once('_app/lib/MyActionView.php');
+require_once('_app/lib/MyActionController.php');
+require_once('_app/lib/inflector.php');
+require_once('_app/lib/inflections.php');
 class ActiveRecord extends MyActiveRecord{
 
 }
@@ -23,17 +25,36 @@ class ActionController extends MyActionController{
 
 }
 function __autoload($class_name) {
-	if(!file_exists(APP_ROOT . '/_models/' . $class_name . '.php')){
-		trigger_error('Could not load the “' . $class_name . '” class. Make sure you have generated it before trying again.', E_USER_ERROR);
+	$class_name_path = underscore($class_name);
+	$missed = false;
+	if(!file_exists(APP_ROOT . '/_app/models/' . $class_name_path . '.php')){
+		$missed = true;
 	}else{
-		@require(APP_ROOT . '/_models/' . $class_name . '.php');
+		@require(APP_ROOT . '/_app/models/' . $class_name_path . '.php');
 	}
+	if($missed == true && !file_exists(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php')){
+		$missed = true;
+	}else{
+		$missed = false;
+		@require(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php');
+	}
+	if($missed == true) trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
 }
+function h($string)
+{
+	return htmlentities($string,ENT_COMPAT,MYACTIVERECORD_CHARSET);
+}
+function t($string){
+	$search = array("’","‘","”","“",'"');
+	$replace = array("'","'",'','','');
+	return str_replace($search,$replace,(strip_tags($string)));
+}
+
 $navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
-$models = scandir(APP_ROOT . '/_models');
+$models = scandir(APP_ROOT . '/_app/models');
 foreach($models as $m){
-	if(!is_dir(APP_ROOT . '/_models/' . $m) && file_exists(APP_ROOT . '/_models/' . $m)) {
-		require_once(APP_ROOT . '/_models/' . $m);
+	if(!is_dir(APP_ROOT . '/_app/models/' . $m) && file_exists(APP_ROOT . '/_app/models/' . $m) && substr($m,0,1) != '.') {
+		require_once(APP_ROOT . '/_app/models/' . $m);
 		$m = substr($m,0,strrpos($m,'.'));
 		$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
 	}
@@ -46,47 +67,55 @@ function flash($arrMessages,$strClass=''){
 	return $out . '</ul>';
 }
 //routing happens here
-$segments = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
-if(!isset($segments[0]) || empty($segments[0])){
+$uri = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
+if(!isset($uri[0]) || empty($uri[0])){
 	//add root view actions here
-	//$segments[0] = 'some_controller';
-	//$segments[1] = 'some_action';
+	//$uri[0] = 'some_controller';
+	//$uri[1] = 'some_action';
 }
-
-if(@file_exists(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php')){
-	require_once(APP_ROOT . '/_controllers/' . strtolower($segments[0]) . '_controller.php');
+if(isset($uri[0]) && file_exists(APP_ROOT . '/_app/controllers/' . strtolower($uri[0]) . '_controller.php')){
+	require_once(APP_ROOT . '/_app/controllers/' . strtolower($uri[0]) . '_controller.php');
 	/**
 	 * Naming Convention:
-	 * db: people
+	 * db table: people
 	 * model: class People (people.php)
 	 * controller: class PeopleController (people_controller.php)
 	 */
-	$className = ucfirst(strtolower($segments[0]));
+	$className = ucfirst(strtolower($uri[0]));
 	$controllerName = $className . 'Controller';
 	$model = ActiveRecord::Create($className); //blank model for default forms etc.
 	$controller = new $controllerName($model);
-	if(isset($segments[2]) && is_numeric(substr($segments[2],0,1)) && !is_numeric($segments[1])){
-		$id = (int) preg_replace('/^([\d]+?)[^\d]*$/',"$1",$segments[2]);
+	if(isset($uri[2]) && is_numeric(substr($uri[2],0,1)) && !is_numeric($uri[1])){
+		$id = (int) preg_replace('/^([\d]+?)[^\d]*$/',"$1",$uri[2]);
 	}
 	if(isset($_POST['delete'])){
 		//allow button name to control action
-		$segments[1] = 'delete';
+		$uri[1] = 'delete';
 	}
-	if(isset($segments[1]) && method_exists($controller,$segments[1])){
-		$out = $controller->{$segments[1]}($id);
-		$page_title .= ' | ' . ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
-		$page_header = ucfirst($segments[1]) . ' ' . ucfirst($segments[0]);
+	if(isset($uri[1]) && method_exists($controller,$uri[1])){
+		$out = $controller->{$uri[1]}($id);
+		$page_title .= t(' | ' . ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
+		$page_header = h(ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
 	}else{
 		$out = $controller->index();
-		$page_title .= ' | ' . ucfirst($segments[0]);
-		$page_header = 'Index ' . ucfirst($segments[0]);
+		$page_title .= t(' | ' . ucfirst($uri[0]));
+		$page_header = h(ucfirst($uri[0]));
 	}
 	if(isset($_SESSION["flash"])){
 		$flash = $_SESSION["flash"];
 		unset($_SESSION["flash"]);
 	}
-	include(APP_ROOT . '/_views/layouts/index.html.php');
+	include(APP_ROOT . '/_app/views/layouts/index.html.php');
+}elseif(!isset($uri[0])){
+	//catch a missing model with no default, show the list of models
+	$controller = new DefaultController($model);
+	$out = $controller->index();
+	include(APP_ROOT . '/_app/views/layouts/index.html.php');
 }else{
 	header('x',true,404); //sends default 404 as configured by your server
+	$page_header = 'Missing File!';
+	$page_title = 'Missing File | ' . $page_title;
+	$out = '<p>The file you requested could not be located.</p><p>Please check the address and try something different next time.</p>';
+	include(APP_ROOT . '/_app/views/layouts/index.html.php');
 }
 ?>

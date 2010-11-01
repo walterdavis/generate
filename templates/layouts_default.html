@@ -1,0 +1,31 @@
+<?php
+$GLOBALS['head'] = '<style type="text/css" media="screen">
+	#logo {
+		position: absolute;
+		top: -6px;
+		right: 8px;
+		background: url(../Resources/logo.png) no-repeat top right;
+		width: 125px;
+		height: 100px;
+	}
+</style>';
+$GLOBALS['navigation'] = '<div id="logo"></div>' . $GLOBALS['navigation'];
+?>
+<h2>Welcome!</h2>
+<p>You’ve made another fine application using MyActiveRecord and MyActionPack!</p>
+<p>You are seeing this page because there is no default route set for your application. To define a default route, look for the following code in <code>_routing.php</code>, and modify it to suit your application:</p>
+<pre><code>if(!isset($uri[0]) || empty($uri[0])){
+  //add root view actions here
+  //$uri[0] = 'some_controller';
+  //$uri[1] = 'some_action';
+}
+</code></pre>
+<p>Perhaps you want something like this instead:</p>
+<pre><code>if(!isset($uri[0]) || empty($uri[0])){
+  //add root view actions here
+  $uri[0] = 'posts';
+  $uri[1] = 'index';
+}
+</code></pre>
+<p>Once you make this change, you can also delete this page, which is found at <code>_app/views/layouts/default.html</code>.</p>
+<p>The file <code>_routing.php</code> is responsible for changing the visitor-provided URI into a set of commands that this application can understand. There are a few preferences you can adjust in that file which will affect every page in your site. All of the rest of the code for your new application can be found in the <code>_app</code> directory.</p>

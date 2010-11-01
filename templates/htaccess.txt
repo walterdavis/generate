@@ -1,10 +1,10 @@
 Options -Indexes
-DirectoryIndex routing.php
+DirectoryIndex _routing.php
 Options -MultiViews
 RewriteEngine  On
 RewriteCond %{REQUEST_FILENAME}   !-d
 RewriteCond %{REQUEST_FILENAME}   !-f
-RewriteRule    ^(.*)   routing.php [NS,QSA]
+RewriteRule    ^(.*)   _routing.php [NS,QSA]
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_IF_NONE_MATCH:%{HTTP:If-None-Match}]
 RewriteCond %{HTTP:Authorization}  !^$

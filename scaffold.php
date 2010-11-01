@@ -2,12 +2,14 @@
 ini_set('display_errors','on');
 error_reporting(E_ALL);
 define('MYACTIVERECORD_CONNECTION_STR', 'mysql://waltd:testpass@localhost/test');
-define('MYACTIVERECORD_CHARSET', 'UTF-8');
-define('DEFAULT_LIMIT', '1000');
+define('MYACTIVERECORD_CHARSET', 'UTF-8'); //whatever your DB is set to use
+define('DEFAULT_LIMIT', '1000'); //top limit for FindAll
 date_default_timezone_set('US/Eastern');
 //
 require_once('templates/MyActiveRecord.php');
 require_once('templates/MyActionView.php');
+require_once('templates/inflector.php');
+require_once('templates/inflections.php');
 class ActiveRecord extends MyActiveRecord{
 
 }
@@ -17,11 +19,20 @@ class ActionView extends MyActionView{
 $db = parse_url(MYACTIVERECORD_CONNECTION_STR);
 $db = $db['path'];
 function __autoload($class_name) {
-	if(!file_exists(dirname(__FILE__) . $db . '/_models/' . $class_name . '.php')){
-		trigger_error('Could not load the “' . $class_name . '” class. Make sure you have generated it before trying again.', E_USER_ERROR);
+	$class_name_path = underscore($class_name);
+	$missed = false;
+	if(!file_exists(dirname(__FILE__) . $db . '/_app/models/' . $class_name_path . '.php')){
+		$missed = true;
 	}else{
-		require (dirname(__FILE__) . $db . '/_models/' . $class_name . '.php');
+		require (dirname(__FILE__) . $db . '/_app/models/' . $class_name_path . '.php');
 	}
+	if($missed == true && !file_exists(dirname(__FILE__) . $db . '/_app/controllers/' . $class_name_path . '.php')){
+		$missed = true;
+	}else{
+		$missed = false;
+		require (dirname(__FILE__) . $db . '/_app/controllers/' . $class_name_path . '.php');
+	}
+	if($missed == true) trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
 }
 function get_fields_from_table($table_name){
 	$arrFields = array();
@@ -99,7 +110,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		}
 		$code .= '}
 ?>';
-		$out .= '<p><a href="scaffold.php">Start Over</a></p>';
+		$out .= '<h2>' . substr($db,1) . '/' . $table_name . '</h2>
+		<p><a href="scaffold.php" class="faux-button">Start Over</a></p>';
 		$view_create = $view_edit = $view_index = $view_show = '<?php
 ?>
 ';
@@ -144,25 +156,27 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ' : '		<td>\' . $object->h(\'' . $k . '\') . \'</td>
 ';
 		}
-		$view_create .= '	<p>' . ActionView::Input('save') . ' | <?= ActionView::link_to("Cancel","index",$object)?></p>
+		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= ActionView::link_to("Cancel","index",$object, array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_edit .= '	<p>' . ActionView::Input('save') . ActionView::Input('delete') . ' | <?= ActionView::link_to("Index","index",$object)?></p>
+		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button')) . ' <?= ActionView::link_to("Index","index",$object, array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_show .= '	<?= \'<p>\' . ActionView::link_to("Index","index",$object) . \' | \' . ActionView::link_to("Edit","edit",$object) . \'</p>\' ?>
+		$view_show .= '	<?= \'<p>\' . ActionView::link_to("Index","index",$object, array("class" => "faux-button")) . \' \' . ActionView::link_to("Edit","edit",$object, array("class" => "form_button")) . \'</p>\' ?>
 ';
 		$view_index .= '	</tr>
 \';
 	}
 ?>
 </table>
-<p><?= ActionView::link_to("Create","create",$object) ?></p>
+<p><?= ActionView::link_to("Create","create",$object, array("class" => "form_button")) ?></p>
 ';
 		$routing = file_get_contents('templates/routing.php');
 		$routing = str_replace(array('DSN','MARCHAR','DEFLIMIT','TZ'),array(MYACTIVERECORD_CONNECTION_STR,MYACTIVERECORD_CHARSET,DEFAULT_LIMIT,date_default_timezone_get()),$routing);
 		$htaccess = file_get_contents('templates/htaccess.txt');
 		$layout = file_get_contents('templates/layouts_index.html');
+		$default = file_get_contents('templates/layouts_default.html');
+		$default_controller = file_get_contents('templates/default_controller.php');
 		$controller = file_get_contents('templates/controller.php');
 		function create_file($path, $content, $mode = 0664){
 			if(!@file_exists(dirname(__FILE__) . '/generated_code' . $path) || isset($_POST['force'])){
@@ -205,33 +219,39 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= '<p>Warning! Create a folder in the same directory as scaffold.php called <strong>generated_code</strong>, and be sure to give it <strong>777</strong> permissions!</p>';
 		}else{
 			$out .= create_directory($db);
-			$out .= create_directory($db . '/_models');
-			$out .= create_directory($db . '/_helpers');
-			$out .= create_directory($db . '/_views');
+			$out .= create_directory($db . '/_app');
+			$out .= create_directory($db . '/_app/models');
+			$out .= create_directory($db . '/_app/helpers');
+			$out .= create_directory($db . '/_app/views');
 			$out .= create_directory($db . '/css');
-			$out .= create_directory($db . '/_views/' . $table_name);
-			$out .= create_directory($db . '/_lib');
-			$out .= create_directory($db . '/_controllers');
-			$out .= copy_directory('/images', $db . '/_images');
-			$out .= create_directory($db . '/_views/layouts');
-			$out .= copy_file('MyActionController.php',$db . '/_lib/MyActionController.php');
-			$out .= copy_file('MyActiveRecord.php',$db . '/_lib/MyActiveRecord.php');
-			$out .= copy_file('MyActionView.php',$db . '/_lib/MyActionView.php');
+			$out .= create_directory($db . '/_app/views/' . $table_name);
+			$out .= create_directory($db . '/_app/lib');
+			$out .= create_directory($db . '/_app/controllers');
+			$out .= copy_directory('/images', $db . '/Resources');
+			$out .= create_directory($db . '/_app/views/layouts');
+			$out .= copy_file('MyActionController.php',$db . '/_app/lib/MyActionController.php');
+			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
+			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
 			$out .= copy_file('application.css',$db . '/css/application.css');
-			$out .= create_file($db . '/_views/' . $table_name . '/create.html.php',$view_create);
-			$out .= create_file($db . '/_views/' . $table_name . '/edit.html.php',$view_edit);
-			$out .= create_file($db . '/_views/' . $table_name . '/show.html.php',$view_show);
-			$out .= create_file($db . '/_views/' . $table_name . '/index.html.php',$view_index);
-			$out .= create_file($db . '/_models/' . $table_name . '.php',$code);
-			$out .= create_file($db . '/_controllers/' . $table_name . '_controller.php',sprintf($controller,ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name)));
+			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
+			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');
+			$out .= copy_file('/images/favicon.ico',$db . '/favicon.ico');
+			$out .= create_file($db . '/_app/views/' . $table_name . '/create.html.php',$view_create);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/edit.html.php',$view_edit);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/show.html.php',$view_show);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/index.html.php',$view_index);
+			$out .= create_file($db . '/_app/models/' . $table_name . '.php',$code);
+			$out .= create_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name)));
+			$out .= create_file($db . '/_app/controllers/default_controller.php',$default_controller);
 			$out .= create_file($db . '/.htaccess', $htaccess);
-			$out .= create_file($db . '/routing.php', $routing);
-			$out .= create_file($db . '/_views/layouts/index.html.php',$layout);
+			$out .= create_file($db . '/_routing.php', $routing);
+			$out .= create_file($db . '/_app/views/layouts/index.html.php',$layout);
+			$out .= create_file($db . '/_app/views/layouts/default.html.php',$default);
 		}
 	}else{
-		$out = '<h1>' . substr($db,1) . '/' . $table_name . '</h1>
+		$out = '<h2>' . substr($db,1) . '/' . $table_name . '</h2>
 		<form action="scaffold.php?table_name=' . $table_name . '" method="post">
-		<p><label for="force">Force</label><input type="checkbox" name="force" value="1" id="force"/></p>';
+';
 		
 		foreach($arrFields as $k => $v){
 			if($k == 'id'){
@@ -241,34 +261,35 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			}elseif(preg_match('/_at$|_on$/',$k) && preg_match('/date/',$v['Type'])){
 				$out .= '<p><span class="field">' . $k . '</span>(timestamp)<input type="hidden" name="timestamps[' . $k . ']" value="' . $k . '" id="timestamps_' . $k . '"/></p>';
 			}elseif($v['Type'] == 'tinyint(1)'){
-				$out .= '<p><span class="field">' . $k . '</span>(checkbox) <label for="existence_' . $k . '"><input type="hidden" name="existence[' . $k . ']" value="0" /><input type="checkbox" name="existence[' . $k . ']" value="1" id="existence_' . $k . '"/> Validate existence</label></p>';
+				$out .= '<p><span class="field">' . $k . '</span>(checkbox) <label class="inline" for="existence_' . $k . '"><input type="hidden" name="existence[' . $k . ']" value="0" /><input type="checkbox" name="existence[' . $k . ']" value="1" id="existence_' . $k . '"/> Validate existence</label></p>';
 			}else{
 				$regexp = (isset($_POST['regexp'][$k])) ? $_POST['regexp'][$k] : '';
-				$out .= '<p><span class="field">' . $k . '</span>Validate: <label for="regexp_' . $k . '">regexp</label><input type="text" name="regexp[' . $k . ']" value="' . $regexp . '" id="regexp_' . $k . '"/>
-				<label for="existence_' . $k . '"><input type="hidden" name="existence[' . $k . ']" value="0" /><input type="checkbox" name="existence[' . $k . ']" value="1" id="existence_' . $k . '"/> existence</label>
-				<label for="uniqueness_of_' . $k . '"><input type="hidden" name="uniqueness_of[' . $k . ']" value="0" /><input type="checkbox" name="uniqueness_of[' . $k . ']" value="1" id="uniqueness_of_' . $k . '"/> uniqueness_of</label>
-				<label for="email_' . $k . '"><input type="hidden" name="email[' . $k . ']" value="0" /><input type="checkbox" name="email[' . $k . ']" value="1" id="email_' . $k . '"/> email</label></p>';
+				$out .= '<p><span class="field">' . $k . '</span>Validate: <label class="inline" for="regexp_' . $k . '">regexp</label><input type="text" name="regexp[' . $k . ']" value="' . $regexp . '" id="regexp_' . $k . '"/>
+				<label class="inline" for="existence_' . $k . '"><input type="hidden" name="existence[' . $k . ']" value="0" /><input type="checkbox" name="existence[' . $k . ']" value="1" id="existence_' . $k . '"/> existence</label>
+				<label class="inline" for="uniqueness_of_' . $k . '"><input type="hidden" name="uniqueness_of[' . $k . ']" value="0" /><input type="checkbox" name="uniqueness_of[' . $k . ']" value="1" id="uniqueness_of_' . $k . '"/> uniqueness_of</label>
+				<label class="inline" for="email_' . $k . '"><input type="hidden" name="email[' . $k . ']" value="0" /><input type="checkbox" name="email[' . $k . ']" value="1" id="email_' . $k . '"/> email</label></p>';
 			}
 		}
 		//scan for children
 		foreach($tables as $table){
 			if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
 				if(! is_linking_table($table,$tables)){
-					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
+					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label class="inline" for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
 				}else{
 					$partner = preg_replace('/_?' . $table_name . '_?/','',$table);
-					$out .= '<p><span class="field"><strong>' . $partner . '</strong></span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
+					$out .= '<p><span class="field"><strong>' . $partner . '</strong></span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label class="inline" for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
 				}
 			}
 		}
-		$out .= '<p><input type="submit" name="generate_wrapper" class="indent" value="Generate" id="generate_wrapper"/> <a href="scaffold.php">Start Over</a></p></form>';
+		$out .= '<p><label for="force" class="inline"><input type="checkbox" name="force" class="indent" value="1" id="force"/>Overwrite Existing Files</label></p>
+		<p><input type="submit" name="generate_wrapper" class="indent form_button" value="Generate" id="generate_wrapper"/> <a href="scaffold.php" class="faux-button">Start Over</a></p></form>';
 	}
 }else{
-	$out .= '<h1>Choose a table in “' . substr($db,1) . '”</h1>';
-	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul>';
+	$out .= '<h2>Choose a table in “' . substr($db,1) . '”</h2>';
+	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul style="list-style-type: none; padding:0; margin: 1em 0;">';
 	foreach($tables as $table){
 		if( ! is_linking_table($table,$tables) && in_array('id',array_keys(get_fields_from_table($table)))){
-			$out .= '<li><a href="scaffold.php?table_name=' . $table . '">' . $table . '</a></li>';
+			$out .= '<li style="padding: 4px; display: inline;"><a href="scaffold.php?table_name=' . $table . '" class="faux-button">' . $table . '</a></li>';
 		}
 	}
 	$out .= '</ul>';
@@ -282,16 +303,10 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
 	<title>Scaffold Generator</title>
+	<link rel="stylesheet" href="templates/application.css" type="text/css" media="screen" charset="utf-8"/>
 	<style type="text/css" media="screen">
-	body {
-		padding: 24px;
-		font: 13px "Lucida Grande", Lucida, Verdana, sans-serif;
-		font-size: 14px;
-		background-color: #fff;
-	}
 	#PageDiv {
-		width: 800px;
-		margin: auto;
+		margin-top:64px;
 	}
 	.field {
 		width: 120px;
@@ -305,12 +320,22 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	.indent {
 		margin-left: 132px;
 	}
+	#logo {
+		position: absolute;
+		top: -6px;
+		right: 8px;
+		background: url(templates/images/logo.png) no-repeat top right;
+		width: 125px;
+		height: 100px;
+	}
 	</style>
 
 </head>
 
 <body>
 	<div id="PageDiv">
+		<div id="logo"></div>
+		<h1>Generator</h1>
 		<?= $out ?>
 	</div>
 

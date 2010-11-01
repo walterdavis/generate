@@ -18,10 +18,6 @@ Class MyActionView{
 		return $out . '</select>';
 	}
 	
-	function h($strKey){
-		return MyActiveRecord::h($strKey);
-	}
-	
 	function distinct_picker($strKey,$arrDefaultValues = array(),$boolCombo = false){
 		$combo = ($boolCombo) ? ' class="combo"' : '';
 		$cols = $this->object->distinct_values($strKey);
@@ -42,23 +38,39 @@ Class MyActionView{
 	}
 	
 
-	function ParentPicker($object, $strKey,$boolCombo = false){
+	function ParentPicker($object, $strKey,$boolCombo = false, $html = array()){
 		if(!$boolCombo && MyActiveRecord::AllowNull(get_class($object),$strKey)) $boolCombo = true;
-		$combo = ($boolCombo) ? ' class="combo"' : '';
-		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"' . $combo . '>';
+		if ($boolCombo) $field_html = array('class' => 'combo');
+		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"%s>';
 		if($boolCombo) $out .= '<option value="" label=""></option>';
 		$model = substr($strKey,0,-3);
 		$name = MyActiveRecord::Label($model);
 		$objects = MyActiveRecord::FindAll($model,null,$name . ' ASC');
 		foreach($objects as $o) {
 			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
-			$out .= ($object->$strKey == $o->$name) ? ' selected="selected"' : '';
+			$out .= ($object->$strKey == $o->id) ? ' selected="selected"' : '';
 			$out .= '>' . $o->h($name) . '</option>';
 		}
-		return $out . '</select>';
+		foreach($html as $k => $v){
+			if(array_key_exists($k, $field_html)){
+				//class is additive, all others are replaced
+				if($k == 'class'){
+					$field_html['class'] .= ' ' . $v;
+				}else{
+					$field_html[$k] = $v;
+				}
+			}else{
+				$field_html[$k] = $v;
+			}
+		}
+		$html_extras = '';
+		foreach($field_html as $k => $v){
+			$html_extras .= ' ' . $k . '="' . $v . '"';
+		}
+		return sprintf($out, $html_extras) . '</select>';
 	}
 		
-	function Show($template,$mxdObject,$singleton = null){
+	function Show($template, $mxdObject = null, $singleton = null){
 		$objects = array();
 		if(is_array($mxdObject) && count($mxdObject) > 0){
 			$object = reset($mxdObject);
@@ -68,63 +80,99 @@ Class MyActionView{
 		}elseif(is_object($singleton)){
 			$object = $singleton;
 		}else{
-			return '';
+			//we're not using these objects, so carry on
+			$object = null;
 		}
-		$path = APP_ROOT . '/_views/' . strtolower(get_class($object)) . '/' . $template . '.html.php';
+		if(is_object($object)){
+			$path = APP_ROOT . '/_app/views/' . strtolower(get_class($object)) . '/' . $template . '.html.php';
+		}else{
+			$path = APP_ROOT . '/_app/views/' . $template . '.html.php';
+		}
 		ob_start();
 		include($path);
 		return ob_get_clean();
 	}
 	
-	function Input($name, $arrField = array()){
+	function Input($name, $arrField = array(), $html = array()){
 		if($name == 'id'){
-			$out = '<input type="hidden" name="id" value="<?=$object->id?>" />';
+			$field_html = array();
+			$out = '<input type="hidden" name="id" value="<?=$object->id?>"%s />';
 		}elseif($name == 'save'){
-			$out = '<label for="save">&nbsp;</label><input type="submit" name="save" value="Save" id="save" class="save" />';
+			$field_html = array('id' => 'save', 'class' => 'save');
+			$out = '<label for="save">&nbsp;</label><input type="submit" name="save" value="Save"%s />';
 		}elseif($name == 'delete'){
-			$out = '&nbsp; <input type="submit" name="delete" value="Delete" id="delete" class="delete" />';
+			$field_html = array('id' => 'delete', 'class' => 'delete');
+			$out = '&nbsp; <input type="submit" name="delete" value="Delete"%s/>';
 		}elseif(substr($name,-3) == '_id' && MyActiveRecord::TableExists(substr($name, 0, -3))){
 			$parent_name = substr($name, 0, -3);
-			$out = '<label for="' . $name . '">' . $parent_name . '</label>';
+			$field_html = array();
+			$out = '<label for="' . $name . '"%s>' . $parent_name . '</label>';
+			$html_array_as_string = 'array(';
+			foreach($html as $k => $v){
+				$html_array_as_string .= "'" . $k . "' => " . $v . "',";
+			}
+			if(substr($html_array_as_string,-1) == ',') $html_array_as_string = substr($html_array_as_string,-1);
+			$html_array_as_string .= ')';
 			$out .= '
-<?php
-	print ActionView::ParentPicker($object,\'' . $name . '\');
-?>';
+<?= ActionView::ParentPicker($object,\'' . $name . '\', false, ' . $html_array_as_string . ') ?>';
 		}elseif(isset($arrField['Field']) && (preg_match('/password/',$arrField['Field'])) || (isset($arrField['Type']) && (preg_match('/password/',$arrField['Type'])))){
-			$out = '<label for="' . $name . '">' . $name . '</label><input type="password" class="password" name="' . $name . '" value="" id="' . $name . '"/>';
+			$field_html = array('class' => 'password');
+			$out = '<label for="' . $name . '">' . $name . '</label><input type="password" name="' . $name . '" value="" id="' . $name . '"%s/>';
 		}else{
 			switch ($arrField['Type']) {
 				case 'tinyint(1)':
 					//boolean
-					$out = '<label for="' . $name . '">' . $name . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" class="boolean"<?= ($object->' . $name . ' > 0) ? \' checked="checked"\' : \'\' ?> />';
+					$field_html = array('class' => 'boolean');
+					$out = '<label for="' . $name . '">' . $name . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" <?= ($object->' . $name . ' > 0) ? \' checked="checked"\' : \'\' ?>%s/>';
 					break;
 				case 'text':
-					$out = '<label for="' . $name . '">' . $name . '</label><textarea name="' . $name . '" rows="8" cols="40"><?=$object->h(\'' . $name . '\')?></textarea>';
+					$field_html = array();
+					$out = '<label for="' . $name . '">' . $name . '</label><textarea name="' . $name . '" rows="8" cols="40"%s><?=$object->h(\'' . $name . '\')?></textarea>';
 					break;
 				default:
 					if(isset($arrField['Type']) && isset($arrField['Field'])){
 						if(preg_match('/datetime/',$arrField['Type'])){
-							$classname = 'datetime';
+							$field_html = array('class' => 'datetime');
 						}elseif(preg_match('/date/',$arrField['Type'])){
-							$classname = 'date';
+							$field_html = array('class' => 'date');
 						}elseif(preg_match('/password/',$arrField['Field'])){
-							$classname = 'password text';
+							$field_html = array('class' => 'password text');
 						}elseif(preg_match('/char/',$arrField['Type'])){
-							$classname = 'text';
+							$field_html = array('class' => 'text');
 						}elseif(preg_match('/int/',$arrField['Type'])){
-							$classname = 'integer';
+							$field_html = array('class' => 'integer');
 						}else{
-							$classname = '';
+							$field_html = array();
 						}
 					}
-					$out = '<label for="' . $name . '">' . $name . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '" class="' . $classname . '"/>';
+					$out = '<label for="' . $name . '">' . $name . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '"%s/>';
 					break;
 			}
 		}
-		return $out;
+		foreach($html as $k => $v){
+			if(array_key_exists($k, $field_html)){
+				//class is additive, all others are replaced
+				if($k == 'class'){
+					$field_html['class'] .= ' ' . $v;
+				}else{
+					$field_html[$k] = $v;
+				}
+			}else{
+				$field_html[$k] = $v;
+			}
+		}
+		$html_extras = '';
+		foreach($field_html as $k => $v){
+			$html_extras .= ' ' . $k . '="' . $v . '"';
+		}
+		return sprintf($out, $html_extras);
 	}
-	function link_to($strText, $strAction, $object){
-		return '<a href="' . MyActionView::url_for($strAction, $object) . '">' . $strText . '</a>';
+	function link_to($strText, $strAction, $object, $html = array()){
+		$html_extras = '';
+		foreach($html as $k => $v){
+			$html_extras .= ' ' . $k . '="' . $v . '"';
+		}
+		return '<a href="' . MyActionView::url_for($strAction, $object) . '"' . $html_extras . '>' . $strText . '</a>';
 	}
 	function url_for($strAction,$object){
 		$controller = strtolower(get_class($object));
