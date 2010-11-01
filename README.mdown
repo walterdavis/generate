@@ -66,7 +66,7 @@ when run from a dedicated hostname, as opposed to a sub-folder.
 ##Process Your First Table
 Visit [./scaffold.php](./scaffold.php) in a browser. You should see the names of
 the tables in your database. Click on the first table you wish to work from
-to begin. The system interprets the following field types at the moment:
+to begin. The system interprets the following field types when generating form inputs:
 
 * Varchar or Char or Int will become a text input
 * Tinyint(1) will become a boolean (checkbox)
