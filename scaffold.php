@@ -336,7 +336,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	<div id="PageDiv">
 		<div id="logo"></div>
 		<h1>Generator</h1>
-		<?= $out ?>
+		<?php echo $out; ?>
 	</div>
 
 </body>

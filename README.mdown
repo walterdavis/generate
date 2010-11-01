@@ -33,7 +33,7 @@ installed as a DSO in Apache 2 or `mod_php` in Apache 1.3), and MySQL 4.1 or bet
 You will need a MySQL user with the necessary privileges to 
 create new databases and/or tables.
 
-This application uses PHP's "short open tags" feature, which may be disabled on your
+The generated application uses PHP's "short open tags" feature, which may be disabled on your
 server. There is a configuration option in the `.htaccess` file which will attempt to turn
 this on for you, but depending on your server's basic configuration, you may need to make
 this change in your `php.ini` file instead. See the `.htaccess` file for instructions.
