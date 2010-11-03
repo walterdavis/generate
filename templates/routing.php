@@ -19,19 +19,13 @@ require_once('_app/lib/inflections.php');
 require_once('_app/helpers/helpers.php');
 function __autoload($class_name) {
 	$class_name_path = underscore($class_name);
-	$missed = false;
-	if(!file_exists(APP_ROOT . '/_app/models/' . $class_name_path . '.php')){
-		$missed = true;
-	}else{
-		@require(APP_ROOT . '/_app/models/' . $class_name_path . '.php');
+	if(file_exists(APP_ROOT . '/_app/models/' . $class_name_path . '.php')){
+		return @require(APP_ROOT . '/_app/models/' . $class_name_path . '.php');
 	}
-	if($missed == true && !file_exists(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php')){
-		$missed = true;
-	}else{
-		$missed = false;
-		@require(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php');
+	if(file_exists(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php')){
+		return @require(APP_ROOT . '/_app/controllers/' . $class_name_path . '.php');
 	}
-	if($missed == true) trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
+	trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
 }
 load_models();
 $navigation = build_navbar();

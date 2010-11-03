@@ -10,6 +10,7 @@ require_once('templates/MyActiveRecord.php');
 require_once('templates/MyActionView.php');
 require_once('templates/inflector.php');
 require_once('templates/inflections.php');
+require_once('templates/helpers.php');
 class ActiveRecord extends MyActiveRecord{
 
 }
@@ -19,20 +20,15 @@ class ActionView extends MyActionView{
 $db = parse_url(MYACTIVERECORD_CONNECTION_STR);
 $db = $db['path'];
 function __autoload($class_name) {
+	global $db;
 	$class_name_path = underscore($class_name);
-	$missed = false;
-	if(!file_exists(dirname(__FILE__) . $db . '/_app/models/' . $class_name_path . '.php')){
-		$missed = true;
-	}else{
-		require (dirname(__FILE__) . $db . '/_app/models/' . $class_name_path . '.php');
+	if(file_exists(dirname(__FILE__) . '/generated_code' . $db . '/_app/models/' . $class_name_path . '.php')){
+		return require (dirname(__FILE__) . '/generated_code' . $db . '/_app/models/' . $class_name_path . '.php');
 	}
-	if($missed == true && !file_exists(dirname(__FILE__) . $db . '/_app/controllers/' . $class_name_path . '.php')){
-		$missed = true;
-	}else{
-		$missed = false;
-		require (dirname(__FILE__) . $db . '/_app/controllers/' . $class_name_path . '.php');
+	if(file_exists(dirname(__FILE__) . '/generated_code' . $db . '/_app/controllers/' . $class_name_path . '.php')){
+		return require (dirname(__FILE__) . '/generated_code' . $db . '/_app/controllers/' . $class_name_path . '.php');
 	}
-	if($missed == true) trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
+	trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
 }
 function get_fields_from_table($table_name){
 	$arrFields = array();
@@ -65,8 +61,15 @@ $tables = ActiveRecord::Tables();
 if(!empty($table_name) && in_array($table_name, $tables)){
 	$arrFields = get_fields_from_table($table_name);
 	if(isset($_POST['generate_wrapper'])){
-		$code = '<?php 
+		$model = '<?php 
 class ' . ucfirst($table_name) . ' extends ActiveRecord{
+/*
+	//un-comment this function to set a specific column as the automatic label
+	//(used in foreign key labels and similar for scaffolding purposes)
+	function get_label(){
+		return "first_name";
+	}
+*/
 	function save(){
 ';
 		foreach(array('regexp','existence','uniqueness_of','email') as $validation){
@@ -75,7 +78,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 				foreach($_POST[$validation] as $k => $v){
 					if(!empty($v)) {
 						if($validation == 'regexp') $k = $_POST['regexp'][$k] . "', '" . $k;
-						$code .= "\t\t" . $key . '(\'' . $k . '\');
+						$model .= "\t\t" . $key . '(\'' . $k . '\');
 ';
 					}
 				}
@@ -86,33 +89,33 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 				$function = (substr($field,-3) == '_at') ? '$this->DbDateTime();' : '$this->DbDate();';
 				$cleanup_function = (substr($field,-3) == '_at') ? '$this->DbDateTime(strtotime($this->' . $field . ',time()));' : '$this->DbDate(strtotime($this->' . $field . ',time()));';
 				$condition = (substr($field,0,6) == 'added_') ? 'if($this->id < 1) ' : '';
-				$code .= (preg_match('/^added|^updated/',$field)) ? "\t\t" . $condition . '$this->' . $field . ' = ' . $function . '
+				$model .= (preg_match('/^added|^updated/',$field)) ? "\t\t" . $condition . '$this->' . $field . ' = ' . $function . '
 ' : "\t\t" . $condition . '$this->' . $field . ' = ' . $cleanup_function . '
 ';
 			}
 		}
-		$code .= '		return parent::save();
+		$model .= '		return parent::save();
 	}
 ';
 		if(isset($_POST['children']) || isset($_POST['habtm'])){
-			$code .= "\tfunction destroy(){\n";
+			$model .= "\tfunction destroy(){\n";
 			foreach($_POST['children'] as $k => $v){
 				if($v > 0){
-					$code .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
+					$model .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
 ';
 				}
 			}
 			if(isset($_POST['habtm'])){
 				foreach($_POST['habtm'] as $k => $v){
 					if($v > 0){
-						$code .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
+						$model .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
 ';
 					}
 				}
 			}
-			$code .= "\t\treturn parent::destroy();\n\t}\n";
+			$model .= "\t\treturn parent::destroy();\n\t}\n";
 		}
-		$code .= '}
+		$model .= '}
 ?>';
 		$out .= '<h2>' . substr($db,1) . '/' . $table_name . '</h2>
 ';
@@ -124,7 +127,8 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		<th>actions</th>
 ';
 		foreach($arrFields as $k => $v){
-			$view_index .= '		<th>' . $k . '</th>
+			$k = translate_attribute_name($k);
+			$view_index .= '		<th>' . humanize($k) . '</th>
 ';
 		}
 		$view_index .= '	</tr>
@@ -149,7 +153,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ';
 				}else{
 					$view_show .= '	<p><strong>' . $k . '</strong><br />
-		<?= $object->h(\'' . $k . '\') ?>
+		<?= h($object->get_value(\'' . $k . '\')) ?>
 	</p>
 ';
 				}
@@ -157,7 +161,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$view_edit .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
 			$view_index .= ($v['Type'] == 'tinyint(1)') ? '		<td>\' . (($object->' . $k . ' > 0) ? \'✓\' : \'\') . \'</td>
-' : '		<td>\' . $object->h(\'' . $k . '\') . \'</td>
+' : '		<td>\' . h($object->get_value(\'' . $k . '\')) . \'</td>
 ';
 		}
 		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $this->link_to("Cancel","index", array("class" => "faux-button"))?></p>
@@ -250,7 +254,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
 			$out .= create_directory($db . '/_app/models');
 			$out .= copy_file('app.php', $db . '/_app/models/_app.php');
-			$out .= generate_file($db . '/_app/models/' . $table_name . '.php',$code);
+			$out .= generate_file($db . '/_app/models/' . $table_name . '.php',$model);
 			$out .= create_directory($db . '/_app/views');
 			$out .= create_directory($db . '/_app/views/layouts');
 			$out .= generate_file($db . '/_app/views/layouts/default.html.php',$default);

@@ -615,6 +615,10 @@ class MyActiveRecord
 		}
 		return $name;
 	}
+
+	function get_label(){
+		return MyActiveRecord::Label(get_class($this));
+	}
 		
 	/**
 	 * Returns an array of objects of class strClass mapped from SQL query 

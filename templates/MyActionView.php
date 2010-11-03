@@ -43,9 +43,10 @@ Class MyActionView{
 		if ($boolCombo) $field_html = array('class' => 'combo');
 		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"%s>';
 		if($boolCombo) $out .= '<option value="" label=""></option>';
-		$model = substr($strKey,0,-3);
-		$name = MyActiveRecord::Label($model);
-		$objects = MyActiveRecord::FindAll($model,null,$name . ' ASC');
+		$model_name = substr($strKey,0,-3);
+		$model = MyActiveRecord::Create($model_name);
+		$name = $model->get_label();
+		$objects = MyActiveRecord::FindAll($model_name,null,$name . ' ASC');
 		foreach($objects as $o) {
 			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
 			$out .= ($this->object->$strKey == $o->id) ? ' selected="selected"' : '';
