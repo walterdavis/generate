@@ -186,19 +186,19 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			if(!@file_exists(dirname(__FILE__) . '/generated_code' . $path) || isset($_POST['force'])){
 				file_put_contents(dirname(__FILE__) . '/generated_code' . $path,$content);
 				chmod(dirname(__FILE__) . '/generated_code' . $path,$mode);
-				return '<p>Generated ' . $path . '.</p>';
+				return '<code>    generated: ' . $path . '</code>';
 			}else{
-				return '<p>' . $path . ' exists; skipping...</p>';
+				return '<code>       exists: ' . $path . '</code>';
 			}
 			return '';
 		}
 		function create_directory($path, $mode = 0775){
-			if(!@file_exists(dirname(__FILE__) . '/generated_code' . $path) || isset($_POST['force'])){
+			if(!@file_exists(dirname(__FILE__) . '/generated_code' . $path)){
 				@mkdir(dirname(__FILE__) . '/generated_code' . $path);
 				chmod(dirname(__FILE__) . '/generated_code' . $path,$mode);
-				return '<p>Generated ' . $path . '.</p>';
-			}else{
-				return '<p>' . $path . ' exists; skipping...</p>';
+					return '<code>      created: ' . $path . '</code>';
+				}else{
+					return '<code>       exists: ' . $path . '</code>';
 			}
 			return '';
 		}
@@ -210,49 +210,52 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 				if(!is_dir(dirname(__FILE__) . '/templates' . $source . '/' . $f) && file_exists(dirname(__FILE__) . '/templates' . $source . '/' . $f)) {
 					copy(dirname(__FILE__) . '/templates' . $source . '/' . $f,dirname(__FILE__) . '/generated_code' . $dest . '/' . $f);
 					chmod(dirname(__FILE__) . '/generated_code' . $dest . '/' . $f,$filemode);
-					$out .= '<p>Copied ' . $f . ' to ' . $dest . '</p>';
+					$out .= '<code>       copied: ' . $f . ' to ' . $dest . '</code>';
 				}
 			}
+			return $out;
 		}
 		function copy_file($source, $dest, $mode = 0664){
 			copy(dirname(__FILE__) . '/templates/' . $source, dirname(__FILE__) . '/generated_code' . $dest);
 			chmod(dirname(__FILE__) . '/generated_code' . $dest,0664);
-			return '<p>Generated ' . $dest . '.</p>';
+			return '<code>       copied: ' . $source . ' to ' . $dest . '</code>';
 		}
 		if(!file_exists(dirname(__FILE__) . '/generated_code') || (file_exists(dirname(__FILE__) . '/generated_code') && !is_writable(dirname(__FILE__) . '/generated_code'))){
-			$out .= '<p>Warning! Create a folder in the same directory as scaffold.php called <strong>generated_code</strong>, and be sure to give it <strong>777</strong> permissions!</p>';
+			$out .= '<h3 style="color:red">Warning! Create a folder in the same directory as scaffold.php called <strong>generated_code</strong>, and be sure to give it <strong>777</strong> permissions!</h3>';
 		}else{
+			$out .= '<h3>Results</h3><pre>';
 			$out .= create_directory($db);
 			$out .= create_directory($db . '/_app');
-			$out .= create_directory($db . '/_app/models');
-			$out .= create_directory($db . '/_app/helpers');
-			$out .= create_directory($db . '/_app/views');
-			$out .= create_directory($db . '/css');
-			$out .= create_directory($db . '/_app/views/' . $table_name);
-			$out .= create_directory($db . '/_app/lib');
 			$out .= create_directory($db . '/_app/controllers');
-			$out .= copy_directory('/images', $db . '/Resources');
-			$out .= create_directory($db . '/_app/views/layouts');
-			$out .= copy_file('MyActionController.php',$db . '/_app/lib/MyActionController.php');
-			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
-			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
-			$out .= copy_file('application.css',$db . '/css/application.css');
-			$out .= copy_file('app.php', $db . '/_app/models/_app.php');
-			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
-			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');
-			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');
-			$out .= copy_file('/images/favicon.ico',$db . '/favicon.ico');
-			$out .= create_file($db . '/_app/views/' . $table_name . '/create.html.php',$view_create);
-			$out .= create_file($db . '/_app/views/' . $table_name . '/edit.html.php',$view_edit);
-			$out .= create_file($db . '/_app/views/' . $table_name . '/show.html.php',$view_show);
-			$out .= create_file($db . '/_app/views/' . $table_name . '/index.html.php',$view_index);
-			$out .= create_file($db . '/_app/models/' . $table_name . '.php',$code);
 			$out .= create_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name)));
 			$out .= create_file($db . '/_app/controllers/default_controller.php',$default_controller);
-			$out .= create_file($db . '/.htaccess', $htaccess);
-			$out .= create_file($db . '/_routing.php', $routing);
-			$out .= create_file($db . '/_app/views/layouts/index.html.php',$layout);
+			$out .= create_directory($db . '/_app/helpers');
+			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');
+			$out .= create_directory($db . '/_app/lib');
+			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');
+			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
+			$out .= copy_file('MyActionController.php',$db . '/_app/lib/MyActionController.php');
+			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
+			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
+			$out .= create_directory($db . '/_app/models');
+			$out .= copy_file('app.php', $db . '/_app/models/_app.php');
+			$out .= create_file($db . '/_app/models/' . $table_name . '.php',$code);
+			$out .= create_directory($db . '/_app/views');
+			$out .= create_directory($db . '/_app/views/layouts');
 			$out .= create_file($db . '/_app/views/layouts/default.html.php',$default);
+			$out .= create_file($db . '/_app/views/layouts/index.html.php',$layout);
+			$out .= create_directory($db . '/_app/views/' . $table_name);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/create.html.php',$view_create);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/edit.html.php',$view_edit);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/index.html.php',$view_index);
+			$out .= create_file($db . '/_app/views/' . $table_name . '/show.html.php',$view_show);
+			$out .= create_file($db . '/_routing.php', $routing);
+			$out .= create_file($db . '/.htaccess', $htaccess);
+			$out .= create_directory($db . '/css');
+			$out .= copy_file('application.css',$db . '/css/application.css');
+			$out .= copy_file('/images/favicon.ico',$db . '/favicon.ico');
+			$out .= copy_directory('/images', $db . '/Resources');
+			$out .= '</pre>';
 		}
 	}else{
 		$out = '<h2>' . substr($db,1) . '/' . $table_name . '</h2>
