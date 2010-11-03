@@ -293,7 +293,7 @@ function humanize($lowerCaseAndUnderscoredWord)
 {
 	$text = ucwords(str_replace("_"," ",$lowerCaseAndUnderscoredWord));
 	//modified to uppercase foreign key names
-	return str_replace(' Id', ' ID', $text);
+	return preg_replace('/Id$/', 'ID', $text);
 }
 
 /**

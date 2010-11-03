@@ -615,9 +615,33 @@ class MyActiveRecord
 		}
 		return $name;
 	}
-
+	/*
+		instance accessor of GetLabel
+	*/
 	function get_label(){
 		return MyActiveRecord::Label(get_class($this));
+	}
+
+	/**
+	 * Is this a boolean field?
+	 *
+	 * @static
+	 * @param	string	strTable	Name of database table
+	 * @param	string	strField	Name of field in table
+	 * @return	boolean
+	 */
+	function IsBoolean($strTable, $strField)
+	{
+		$fields = MyActiveRecord::Columns($strTable);
+		if( isset($fields[$strField]['Type']) )
+		{
+      return $fields[$strField]['Type'] == 'tinyint(1)';
+		}
+		return false;
+	}
+	
+	function is_boolean($strField){
+		return MyActiveRecord::IsBoolean(strtolower(get_class($this)),$strField);
 	}
 		
 	/**

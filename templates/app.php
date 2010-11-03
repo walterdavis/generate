@@ -21,6 +21,8 @@ class ActiveRecord extends MyActiveRecord{
 			if($class = ActiveRecord::Create($classname)){
 				$fieldname = $classname;
 			}
+		}elseif($this->is_boolean($fieldname)){
+			return ($this->$fieldname > 0) ? '✓' : '';
 		}
 		return $this->$fieldname;
 	}

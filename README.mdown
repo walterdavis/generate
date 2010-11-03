@@ -64,7 +64,7 @@ site root folder. You can change this, but by default, the site will only work
 when run from a dedicated hostname, as opposed to a sub-folder.
 
 ##Process Your First Table
-Visit [./scaffold.php](./scaffold.php) in a browser. You should see the names of
+Visit [scaffold.php](https://github.com/walterdavis/generate/blob/master/scaffold.php) in a browser. You should see the names of
 the tables in your database. Click on the first table you wish to work from
 to begin. The system interprets the following field types when generating form inputs:
 
@@ -111,11 +111,8 @@ process again.
 Once you have generated the files for a particular table, they will not be 
 overwritten unless you check the "Overwrite Existing Files" checkbox at the bottom of the screen. 
 If you make changes to your database (add, remove or change columns) you will 
-need to check this option to get a fresh set of interface files.
-
-However, each time you generate a new scaffold for a model, all of the "library" code (including the
-default home page and routing file) will be re-generated. If you are iterating your application
-design using this system, I strongly recommend that you place the `generated_code` folder in version
+need to check this option to get a fresh set of interface files. I strongly 
+recommend that you place the `generated_code` folder in version
 control so you can merge your edits or roll back any overwrites.
 
 ##Install the Site

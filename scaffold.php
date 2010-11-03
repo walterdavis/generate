@@ -54,6 +54,28 @@ function is_linking_table($table_name,$all_tables){
 	}
 	return false;
 }
+function get_child_tables($table_name,$all_tables){
+	$out = array();
+	foreach($all_tables as $table){
+		if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
+			if(! is_linking_table($table,$tables)){
+				$out[] = $table;
+			}
+		}
+	}
+	return $out;
+}
+function get_linked_tables($table_name,$all_tables){
+	$out = array();
+	foreach($all_tables as $table){
+		if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
+			if(is_linking_table($table,$all_tables)){
+				$out[] = preg_replace('/_?' . $table_name . '_?/','',$table);
+			}
+		}
+	}
+	return $out;
+}
 $out = '';
 $table_name = (isset($_GET['table_name'])) ? $_GET['table_name'] : '';
 $arrFields = array();
@@ -63,14 +85,22 @@ if(!empty($table_name) && in_array($table_name, $tables)){
 	if(isset($_POST['generate_wrapper'])){
 		$model = '<?php 
 class ' . ucfirst($table_name) . ' extends ActiveRecord{
-/*
+';
+$model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_name',$arrFields)) ? '	function get_label(){
+		return "full_name";
+	}
+	function full_name(){
+		return $this->first_name . \' \' . $this->last_name;
+	}
+' : '/*
 	//un-comment this function to set a specific column as the automatic label
-	//(used in foreign key labels and similar for scaffolding purposes)
+	//(used in foreign key labels and elsewhere)
 	function get_label(){
-		return "first_name";
+		return "company_name";
 	}
 */
-	function save(){
+';
+$model .= '	function save(){
 ';
 		foreach(array('regexp','existence','uniqueness_of','email') as $validation){
 			if(isset($_POST[$validation])){
@@ -124,7 +154,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ';
 		$view_index .= '<table>
 	<tr>
-		<th>actions</th>
+		<th>Actions</th>
 ';
 		foreach($arrFields as $k => $v){
 			$k = translate_attribute_name($k);
@@ -152,7 +182,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	<?= ActionView::simple_format(\'' . $k . '\',$object) ?>
 ';
 				}else{
-					$view_show .= '	<p><strong>' . $k . '</strong><br />
+					$view_show .= '	<p><strong>' . translate_attribute_name($k) . '</strong><br />
 		<?= h($object->get_value(\'' . $k . '\')) ?>
 	</p>
 ';
@@ -160,8 +190,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		}
 			$view_edit .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
-			$view_index .= ($v['Type'] == 'tinyint(1)') ? '		<td>\' . (($object->' . $k . ' > 0) ? \'✓\' : \'\') . \'</td>
-' : '		<td>\' . h($object->get_value(\'' . $k . '\')) . \'</td>
+			$view_index .= '		<td>\' . h($object->get_value(\'' . $k . '\')) . \'</td>
 ';
 		}
 		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $this->link_to("Cancel","index", array("class" => "faux-button"))?></p>

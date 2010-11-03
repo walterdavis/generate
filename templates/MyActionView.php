@@ -46,7 +46,7 @@ Class MyActionView{
 		$model_name = substr($strKey,0,-3);
 		$model = MyActiveRecord::Create($model_name);
 		$name = $model->get_label();
-		$objects = MyActiveRecord::FindAll($model_name,null,$name . ' ASC');
+		$objects = MyActiveRecord::FindAll($model_name);
 		foreach($objects as $o) {
 			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
 			$out .= ($this->object->$strKey == $o->id) ? ' selected="selected"' : '';
@@ -238,6 +238,5 @@ Class MyActionView{
 		ob_end_clean();
 		trigger_error( $path . '.php does not exist' );
 	}
-	
 }
 ?>

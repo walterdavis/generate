@@ -73,7 +73,7 @@ function translate_attribute_name($fieldname){
 		$classname = substr($fieldname, 0, -3);
 		//see if it's a classname
 		if($class = ActiveRecord::Create($classname)){
-			return $class->get_label();
+			return $classname;
 		}
 	}
 	return $fieldname;
