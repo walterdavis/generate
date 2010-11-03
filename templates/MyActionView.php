@@ -1,6 +1,6 @@
 <?php
 Class MyActionView{
-
+	var $object;
 	function picker($strKey,$arrOptions,$boolUseKeyAsValue=false,$boolCombo = false){
 		$combo = ($boolCombo) ? ' class="combo"' : '';
 		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"' . $combo . '>';
@@ -38,8 +38,8 @@ Class MyActionView{
 	}
 	
 
-	function ParentPicker($object, $strKey,$boolCombo = false, $html = array()){
-		if(!$boolCombo && MyActiveRecord::AllowNull(get_class($object),$strKey)) $boolCombo = true;
+	function ParentPicker($strKey,$boolCombo = false, $html = array()){
+		if(!$boolCombo && MyActiveRecord::AllowNull(get_class($this->object),$strKey)) $boolCombo = true;
 		if ($boolCombo) $field_html = array('class' => 'combo');
 		$out = '<select size="1" name="' . $strKey . '" id="' . $strKey . '"%s>';
 		if($boolCombo) $out .= '<option value="" label=""></option>';
@@ -48,7 +48,7 @@ Class MyActionView{
 		$objects = MyActiveRecord::FindAll($model,null,$name . ' ASC');
 		foreach($objects as $o) {
 			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
-			$out .= ($object->$strKey == $o->id) ? ' selected="selected"' : '';
+			$out .= ($this->object->$strKey == $o->id) ? ' selected="selected"' : '';
 			$out .= '>' . $o->h($name) . '</option>';
 		}
 		foreach($html as $k => $v){
@@ -114,7 +114,7 @@ Class MyActionView{
 			if(substr($html_array_as_string,-1) == ',') $html_array_as_string = substr($html_array_as_string,-1);
 			$html_array_as_string .= ')';
 			$out .= '
-<?= ActionView::ParentPicker($object,\'' . $name . '\', false, ' . $html_array_as_string . ') ?>';
+<?= $this->ParentPicker(\'' . $name . '\', false, ' . $html_array_as_string . ') ?>';
 		}elseif(isset($arrField['Field']) && (preg_match('/password/',$arrField['Field'])) || (isset($arrField['Type']) && (preg_match('/password/',$arrField['Type'])))){
 			$field_html = array('class' => 'password');
 			$out = '<label for="' . $name . '">' . $name . '</label><input type="password" name="' . $name . '" value="" id="' . $name . '"%s/>';
@@ -145,6 +145,7 @@ Class MyActionView{
 							$field_html = array();
 						}
 					}
+					if(false !== array_search($name,array('added_at','added_on','updated_at','updated_on'))) $field_html['disabled'] = 'disabled';
 					$out = '<label for="' . $name . '">' . $name . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '"%s/>';
 					break;
 			}
@@ -167,24 +168,75 @@ Class MyActionView{
 		}
 		return sprintf($out, $html_extras);
 	}
-	function link_to($strText, $strAction, $object, $html = array()){
+	function LinkTo($object, $strText, $strAction, $html = array()){
 		$html_extras = '';
 		foreach($html as $k => $v){
 			$html_extras .= ' ' . $k . '="' . $v . '"';
 		}
-		return '<a href="' . MyActionView::url_for($strAction, $object) . '"' . $html_extras . '>' . $strText . '</a>';
+		return '<a href="' . MyActionView::UrlFor($object, $strAction) . '"' . $html_extras . '>' . $strText . '</a>';
 	}
-	function url_for($strAction,$object){
+	
+	function link_to($strText, $strAction, $html = array()){
+		$html_extras = '';
+		foreach($html as $k => $v){
+			$html_extras .= ' ' . $k . '="' . $v . '"';
+		}
+		return '<a href="' . $this->url_for($strAction) . '"' . $html_extras . '>' . $strText . '</a>';
+	}
+	function UrlFor($object,$strAction){
 		if(substr($strAction,0,1) == '/') return $strAction;
 		$controller = strtolower(get_class($object));
 		$link = "/" . $controller . "/" . $strAction;
 		if($object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->id;
 		return $link;
 	}
-	function simple_format($strKey,$object){
-		$out = '<p>' . nl2br($object->h($strKey)) . '</p>';
+	function url_for($strAction){
+		if(substr($strAction,0,1) == '/') return $strAction;
+		$controller = strtolower(get_class($this->object));
+		$link = "/" . $controller . "/" . $strAction;
+		if($this->object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $this->object->id;
+		return $link;
+	}
+	function simple_format($strKey){
+		$out = '<p>' . nl2br($this->object->h($strKey)) . '</p>';
 		$out = preg_replace('/<br \/>\s+<br \/>/m',"</p>\n<p>",$out);
 		return $out . "\n";
 	}
+	function render_partial($strPartial){
+		$parts = explode('/',$strPartial);
+		$path = APP_ROOT . '/_app/views/';
+		$file = '_' . array_pop($parts);
+		$path .= implode('/',$parts);
+		$path .= '/' . $file;
+		ob_start();
+		$object = $this->object;
+		foreach(array('','.php','.html','.html.php','.phtml') as $ext){
+			if(@file_exists($path . $ext)){
+				include($path . $ext);
+				return ob_get_clean();
+			}
+		}
+		ob_end_clean();
+		trigger_error( $path . '.php does not exist' );
+	}
+	function render($strTemplate){
+		$parts = explode('/',$strTemplate);
+		$path = APP_ROOT . '/_app/views/';
+		if(count($parts) == 1 && is_object($this->object)){
+			$path .= strtolower(get_class($this->object)) . '/';
+		}
+		$path .= implode('/',$parts);
+		ob_start();
+		$object = $this->object;
+		foreach(array('','.php','.html','.html.php','.phtml') as $ext){
+			if(@file_exists($path . $ext)){
+				include($path . $ext);
+				return ob_get_clean();
+			}
+		}
+		ob_end_clean();
+		trigger_error( $path . '.php does not exist' );
+	}
+	
 }
 ?>

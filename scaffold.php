@@ -84,9 +84,11 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 		if(isset($_POST['timestamps'])){
 			foreach($_POST['timestamps'] as $field){
 				$function = (substr($field,-3) == '_at') ? '$this->DbDateTime();' : '$this->DbDate();';
+				$cleanup_function = (substr($field,-3) == '_at') ? '$this->DbDateTime(strtotime($this->' . $field . ',time()));' : '$this->DbDate(strtotime($this->' . $field . ',time()));';
 				$condition = (substr($field,0,6) == 'added_') ? 'if($this->id < 1) ' : '';
 				$code .= (preg_match('/^added|^updated/',$field)) ? "\t\t" . $condition . '$this->' . $field . ' = ' . $function . '
-' : '';
+' : "\t\t" . $condition . '$this->' . $field . ' = ' . $cleanup_function . '
+';
 			}
 		}
 		$code .= '		return parent::save();
@@ -130,7 +132,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 	foreach($objects as $object){
 		print \'	<tr>
 		<td>
-			\' . ActionView::link_to("Show","show",$object) . \' | \' . ActionView::link_to("Edit","edit",$object) . \'
+			\' . ActionView::LinkTo($object, "Show","show") . \' | \' . ActionView::LinkTo($object,"Edit","edit") . \'
 		</td>
 ';
 		$view_edit .= '<form action="" method="post" accept-charset="utf-8">
@@ -158,20 +160,20 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ' : '		<td>\' . $object->h(\'' . $k . '\') . \'</td>
 ';
 		}
-		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= ActionView::link_to("Cancel","index",$object, array("class" => "faux-button"))?></p>
+		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $this->link_to("Cancel","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button')) . ' <?= ActionView::link_to("Index","index",$object, array("class" => "faux-button"))?></p>
+		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $this->link_to("Index","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_show .= '	<?= \'<p>\' . ActionView::link_to("Index","index",$object, array("class" => "faux-button")) . \' \' . ActionView::link_to("Edit","edit",$object, array("class" => "form_button")) . \'</p>\' ?>
+		$view_show .= '	 <p><?= $this->link_to("Index","index", array("class" => "faux-button")) . \' \' . $this->link_to("Edit","edit", array("class" => "form_button")) ?></p>
 ';
 		$view_index .= '	</tr>
 \';
 	}
 ?>
 </table>
-<p><?= ActionView::link_to("Create","create",$object, array("class" => "form_button")) ?></p>
+<p><?= $this->view->link_to("Create","create", array("class" => "form_button")) ?></p>
 ';
 		$routing = file_get_contents('templates/routing.php');
 		$routing = str_replace(array('DSN','MARCHAR','DEFLIMIT','TZ'),array(MYACTIVERECORD_CONNECTION_STR,MYACTIVERECORD_CHARSET,DEFAULT_LIMIT,date_default_timezone_get()),$routing);
@@ -235,6 +237,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
 			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
 			$out .= copy_file('application.css',$db . '/css/application.css');
+			$out .= copy_file('app.php', $db . '/_app/models/_app.php');
 			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
 			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');
 			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');

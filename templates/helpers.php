@@ -32,4 +32,41 @@ function render($strTemplate, $object=null){
 	ob_end_clean();
 	trigger_error( $path . '.php does not exist' );
 }
+function h($string){
+	return htmlentities($string,ENT_COMPAT,MYACTIVERECORD_CHARSET);
+}
+function t($string){
+	$search = array("’","‘","”","“",'"');
+	$replace = array("'","'",'','','');
+	return str_replace($search,$replace,(strip_tags($string)));
+}
+//flash messages built here
+function flash($arrMessages,$strClass=''){
+	if(empty($strClass)) $strClass = 'flash';
+	$out = '<ul class="' . $strClass . '">';
+	foreach((array)$arrMessages as $m) $out .=  '<li>' . $m . '</li>';
+	return $out . '</ul>';
+}
+function build_navbar(){
+	//build automatic navigation bar
+	$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
+	$models = scandir(APP_ROOT . '/_app/models');
+	foreach($models as $m){
+		if(!is_dir(APP_ROOT . '/_app/models/' . $m) && file_exists(APP_ROOT . '/_app/models/' . $m) && substr($m,0,1) != '.' && substr($m,0,1) != '_') {
+			$m = substr($m,0,strrpos($m,'.'));
+			$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
+		}
+	}
+	$navigation .= '</ul>';
+	return $navigation;
+}
+function load_models(){
+	$models = scandir(APP_ROOT . '/_app/models');
+	foreach($models as $m){
+		if(!is_dir(APP_ROOT . '/_app/models/' . $m) && file_exists(APP_ROOT . '/_app/models/' . $m) && substr($m,0,1) != '.' && substr($m,0,1) != '_') {
+			require_once(APP_ROOT . '/_app/models/' . $m);
+		}
+	}
+}
+
 ?>

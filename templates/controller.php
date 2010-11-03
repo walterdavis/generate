@@ -1,13 +1,12 @@
 <?php
 class %sController extends ActionController{
 	function create(){
-		$this->object = ActiveRecord::Create("%s");
 		if(isset($_POST["save"])){
 			$this->object->populate($_POST);
 			$this->object->save();
 			$this->manage_result("edit", "Object saved successfully");
 		}
-		return ActionView::Show("create",$this->object);
+		return parent::create();
 	}
 	function delete($id){
 		$this->object = ActiveRecord::FindById("%s",$id);
@@ -21,15 +20,15 @@ class %sController extends ActionController{
 			$this->object->save();
 			$this->manage_result("edit", "Object updated successfully");
 		}
-		return ActionView::Show("edit",$this->object);
+		return parent::edit();
 	}
 	function show($id){
-		$object = ActiveRecord::FindById("%s",$id);
-		return ActionView::Show("show",$object);
+		$this->object = ActiveRecord::FindById("%s",$id);
+		return parent::show();
 	}
 	function index(){
 		$objects = ActiveRecord::FindAll("%s");
-		return ActionView::Show("index", $objects, ActiveRecord::Create("%s"));
+		return ActionView::Show("index", $objects, $this->object);
 	}
 }
 ?>
