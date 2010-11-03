@@ -175,6 +175,7 @@ Class MyActionView{
 		return '<a href="' . MyActionView::url_for($strAction, $object) . '"' . $html_extras . '>' . $strText . '</a>';
 	}
 	function url_for($strAction,$object){
+		if(substr($strAction,0,1) == '/') return $strAction;
 		$controller = strtolower(get_class($object));
 		$link = "/" . $controller . "/" . $strAction;
 		if($object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->id;

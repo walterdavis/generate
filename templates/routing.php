@@ -15,6 +15,7 @@ require_once('_app/lib/MyActionView.php');
 require_once('_app/lib/MyActionController.php');
 require_once('_app/lib/inflector.php');
 require_once('_app/lib/inflections.php');
+require_once('_app/helpers/helpers.php');
 class ActiveRecord extends MyActiveRecord{
 
 }
@@ -40,8 +41,7 @@ function __autoload($class_name) {
 	}
 	if($missed == true) trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
 }
-function h($string)
-{
+function h($string){
 	return htmlentities($string,ENT_COMPAT,MYACTIVERECORD_CHARSET);
 }
 function t($string){
@@ -49,7 +49,7 @@ function t($string){
 	$replace = array("'","'",'','','');
 	return str_replace($search,$replace,(strip_tags($string)));
 }
-
+//build automatic navigation bar
 $navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
 $models = scandir(APP_ROOT . '/_app/models');
 foreach($models as $m){
@@ -60,11 +60,17 @@ foreach($models as $m){
 	}
 }
 $navigation .= '</ul>';
+//flash messages built here
 function flash($arrMessages,$strClass=''){
 	if(empty($strClass)) $strClass = 'flash';
 	$out = '<ul class="' . $strClass . '">';
 	foreach((array)$arrMessages as $m) $out .=  '<li>' . $m . '</li>';
 	return $out . '</ul>';
+}
+//and decoded from session here
+if(isset($_SESSION["flash"])){
+	$flash = $_SESSION["flash"];
+	unset($_SESSION["flash"]);
 }
 //routing happens here
 $uri = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
@@ -93,17 +99,13 @@ if(isset($uri[0]) && file_exists(APP_ROOT . '/_app/controllers/' . strtolower($u
 		$uri[1] = 'delete';
 	}
 	if(isset($uri[1]) && method_exists($controller,$uri[1])){
-		$out = $controller->{$uri[1]}($id);
 		$page_title .= t(' | ' . ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
 		$page_header = h(ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
+		$out = $controller->{$uri[1]}($id);
 	}else{
-		$out = $controller->index();
 		$page_title .= t(' | ' . ucfirst($uri[0]));
 		$page_header = h(ucfirst($uri[0]));
-	}
-	if(isset($_SESSION["flash"])){
-		$flash = $_SESSION["flash"];
-		unset($_SESSION["flash"]);
+		$out = $controller->index();
 	}
 	include(APP_ROOT . '/_app/views/layouts/index.html.php');
 }elseif(!isset($uri[0])){

@@ -100,10 +100,12 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 ';
 				}
 			}
-			foreach($_POST['habtm'] as $k => $v){
-				if($v > 0){
-					$code .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
+			if(isset($_POST['habtm'])){
+				foreach($_POST['habtm'] as $k => $v){
+					if($v > 0){
+						$code .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
 ';
+					}
 				}
 			}
 			$code .= "\t\treturn parent::destroy();\n\t}\n";
@@ -234,6 +236,7 @@ class ' . ucfirst($table_name) . ' extends ActiveRecord{
 			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
 			$out .= copy_file('application.css',$db . '/css/application.css');
 			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
+			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');
 			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');
 			$out .= copy_file('/images/favicon.ico',$db . '/favicon.ico');
 			$out .= create_file($db . '/_app/views/' . $table_name . '/create.html.php',$view_create);

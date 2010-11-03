@@ -9,7 +9,7 @@ body, html {
 #PageDiv {
 	width: 85%;
 	border: 3px solid #909090;
-	margin: 10px auto 14px;
+	margin: 10px auto 44px;
 	padding: 14px 20px;
 	background-color: #fff;
 }
@@ -178,4 +178,8 @@ input.form_button {
 
 .form_button.delete:hover {
 	background-color: #d84538;
+}
+
+.right {
+	float: right;
 }
