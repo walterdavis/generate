@@ -7,15 +7,18 @@ define('DEFAULT_LIMIT', 'DEFLIMIT');
 define('APP_ROOT', dirname(__FILE__));
 date_default_timezone_set('TZ');
 $page_title = $page_header = 'Site Name';
+$self = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 $id = 0;
 $out = $flash = $head = '';
 session_start();
+require_once('_app/lib/inflector.php');
+require_once('_app/lib/inflections.php');
 require_once('_app/lib/MyActiveRecord.php');
 require_once('_app/lib/MyActionView.php');
 require_once('_app/lib/MyActionController.php');
 require_once('_app/models/_app.php');
-require_once('_app/lib/inflector.php');
-require_once('_app/lib/inflections.php');
+require_once('_app/lib/smartypants.php');
+require_once('_app/lib/markdown.php');
 require_once('_app/helpers/helpers.php');
 function __autoload($class_name) {
 	$class_name_path = underscore($class_name);
@@ -49,11 +52,11 @@ if(isset($uri[0]) && file_exists(APP_ROOT . '/_app/controllers/' . strtolower($u
 	/**
 	 * Naming Convention:
 	 * db table: people
-	 * model: class People (people.php)
+	 * model: class Person (person.php)
 	 * controller: class PeopleController (people_controller.php)
 	 */
-	$className = ucfirst(strtolower($uri[0]));
-	$controllerName = $className . 'Controller';
+	$className = classify($uri[0]);
+	$controllerName = pluralize($className) . 'Controller';
 	$object = ActiveRecord::Create($className); //blank model for default forms etc.
 	$view = new ActionView();
 	
@@ -66,12 +69,12 @@ if(isset($uri[0]) && file_exists(APP_ROOT . '/_app/controllers/' . strtolower($u
 		$uri[1] = 'delete';
 	}
 	if(isset($uri[1]) && method_exists($controller,$uri[1])){
-		$page_title .= t(' | ' . ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
-		$page_header = h(ucfirst($uri[1]) . ' ' . ucfirst($uri[0]));
+		$page_title .= t(' | ' . ucfirst($uri[1]) . ' ' . $className);
+		$page_header = h(ucfirst($uri[1]) . ' ' . $className);
 		$out = $controller->{$uri[1]}($id);
 	}else{
-		$page_title .= t(' | ' . ucfirst($uri[0]));
-		$page_header = h(ucfirst($uri[0]));
+		$page_title .= t(' | ' . pluralize($className));
+		$page_header = h(pluralize($className));
 		$out = $controller->index();
 	}
 	include(APP_ROOT . '/_app/views/layouts/index.html.php');

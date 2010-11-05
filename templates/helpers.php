@@ -1,7 +1,22 @@
 <?php
+function render_collection($strPartial, $objects=array()){
+	$out = '';
+	foreach($objects as $object){
+		$out .= render_partial($strPartial,$object);
+	}
+	return $out;
+}
 function render_partial($strPartial, $object=null){
-	$parts = explode('/',$strPartial);
+	$self = (isset($GLOBALS['self'])) ? $GLOBALS['self'] : '';
+	$parts = preg_split('/\//',$strTemplate, -1, PREG_SPLIT_NO_EMPTY);
 	$path = APP_ROOT . '/_app/views/';
+	$view = new ActionView();
+	if(is_object($object)){
+		$view->object = $object;
+	}
+	if(count($parts) == 1 && is_object($object)){
+		$path .= tableize(get_class($object)) . '/';
+	}
 	$file = '_' . array_pop($parts);
 	$path .= implode('/',$parts);
 	$path .= '/' . $file;
@@ -15,11 +30,23 @@ function render_partial($strPartial, $object=null){
 	ob_end_clean();
 	trigger_error( $path . '.php does not exist' );
 }
-function render($strTemplate, $object=null){
-	$parts = explode('/',$strTemplate);
+function render($strTemplate, $object=null, $new_object = null){
+	$self = (isset($GLOBALS['self'])) ? $GLOBALS['self'] : '';
+	if(is_array($object)){
+		$objects = $object;
+		if(count($objects) > 0) $new_object = reset($object);
+	}
+	if(!$new_object && isset($GLOBALS['object'])) $new_object = $GLOBALS['object'];
+	$parts = preg_split('/\//',$strTemplate, -1, PREG_SPLIT_NO_EMPTY);
 	$path = APP_ROOT . '/_app/views/';
-	if(count($parts) == 1 && is_object($object)){
-		$path .= strtolower(get_class($object)) . '/';
+	$view = new ActionView();
+	if(is_object($object)){
+		$view->object = $object;
+	}elseif(is_object($new_object)){
+		$view->object = $new_object;
+	}
+	if(count($parts) == 1 && is_object($new_object)){
+		$path .= tableize(get_class($new_object)) . '/';
 	}
 	$path .= implode('/',$parts);
 	ob_start();
@@ -54,7 +81,7 @@ function build_navbar(){
 	foreach($models as $m){
 		if(!is_dir(APP_ROOT . '/_app/models/' . $m) && file_exists(APP_ROOT . '/_app/models/' . $m) && substr($m,0,1) != '.' && substr($m,0,1) != '_') {
 			$m = substr($m,0,strrpos($m,'.'));
-			$navigation .= '<li><a href="/' . $m . '">' . trim(ucfirst(str_replace('_',' ',$m))) . '</a></li>';
+			$navigation .= '<li><a href="/' . tableize($m) . '">' . pluralize(humanize($m)) . '</a></li>';
 		}
 	}
 	$navigation .= '</ul>';
@@ -77,5 +104,23 @@ function translate_attribute_name($fieldname){
 		}
 	}
 	return $fieldname;
+}
+function m($string){
+	return SmartyPants(Markdown($string));
+}
+function cycle($odd = 'odd', $even = 'even'){
+	static $class;
+	if($class == $odd) {
+		$class = $even;
+	}else{
+		$class = $odd;
+	}
+	return $class;
+}
+function send_header($content='text/html'){
+	return header('Content-type: ' . $content);
+}
+function send_response_code($code=200){
+	return header('x',true,$code);
 }
 ?>

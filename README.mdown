@@ -19,9 +19,9 @@ very fast, and deliberately limited. It is extremely easy to extend.
 In order to achieve this simplicity, MAR requires that you follow these simple rules
 when creating your models: 
 
-1. Each model class must have a database table named exactly the same as itself (except in
+1. Each model class must have a database table named as the plural form of itself (except in
 lower-case, for database portability).
-2. Each model table must have an auto-incrementing integer field named `id` as its primary key.
+2. Each model table must have an auto-incrementing integer field as its primary key, named `id` by default.
 3. Relationships between models are expressed using specially-named "foreign key" fields
 and join tables. (More about that below.)
 
@@ -76,7 +76,7 @@ classname for further processing with JavaScript
 * Any Date or DateTime column that ends in `_at` or `_on` will be treated as a special
 timestamp. If the column is named `created_on` or `created_at`, or `updated_at` or
 `updated_on`, it will have special setter functions in the Model's `save()` method.
-* Any column that is named `[other table name]_id` will be treated as a foreign key from that table
+* Any column that is named `[other table name in singular form]_id` will be treated as a foreign key from that table
 * Any table which has a foreign key in another table can choose to perform
 cascading deletes in its `destroy()` method.
 
@@ -98,9 +98,9 @@ Mix and match the validations as you like.
 
 ###Cascading Delete
 Dependent delete will be offered as an option if the table includes a field 
-named `[some other table]_id`. If so, checking this option will include the 
+named `[other table in singular form]_id`. If so, checking this option will include the 
 logic to clean up dependent records from that other table. For example, if 
-you delete a Blog Post, all of the Comments with a matching `posts_id` will 
+you delete a Blog Post, all of the Comments with a matching `post_id` will 
 be deleted at the same time. You don't need to choose this if you don't need it.
 
 ##Generate the Site

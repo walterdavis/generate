@@ -186,14 +186,14 @@ Class MyActionView{
 	}
 	function UrlFor($object,$strAction){
 		if(substr($strAction,0,1) == '/') return $strAction;
-		$controller = strtolower(get_class($object));
+		$controller = tableize(get_class($object));
 		$link = "/" . $controller . "/" . $strAction;
 		if($object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->id;
 		return $link;
 	}
 	function url_for($strAction){
 		if(substr($strAction,0,1) == '/') return $strAction;
-		$controller = strtolower(get_class($this->object));
+		$controller = tableize(get_class($this->object));
 		$link = "/" . $controller . "/" . $strAction;
 		if($this->object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $this->object->id;
 		return $link;
@@ -202,41 +202,6 @@ Class MyActionView{
 		$out = '<p>' . nl2br($this->object->h($strKey)) . '</p>';
 		$out = preg_replace('/<br \/>\s+<br \/>/m',"</p>\n<p>",$out);
 		return $out . "\n";
-	}
-	function render_partial($strPartial){
-		$parts = explode('/',$strPartial);
-		$path = APP_ROOT . '/_app/views/';
-		$file = '_' . array_pop($parts);
-		$path .= implode('/',$parts);
-		$path .= '/' . $file;
-		ob_start();
-		$object = $this->object;
-		foreach(array('','.php','.html','.html.php','.phtml') as $ext){
-			if(@file_exists($path . $ext)){
-				include($path . $ext);
-				return ob_get_clean();
-			}
-		}
-		ob_end_clean();
-		trigger_error( $path . '.php does not exist' );
-	}
-	function render($strTemplate){
-		$parts = explode('/',$strTemplate);
-		$path = APP_ROOT . '/_app/views/';
-		if(count($parts) == 1 && is_object($this->object)){
-			$path .= strtolower(get_class($this->object)) . '/';
-		}
-		$path .= implode('/',$parts);
-		ob_start();
-		$object = $this->object;
-		foreach(array('','.php','.html','.html.php','.phtml') as $ext){
-			if(@file_exists($path . $ext)){
-				include($path . $ext);
-				return ob_get_clean();
-			}
-		}
-		ob_end_clean();
-		trigger_error( $path . '.php does not exist' );
 	}
 }
 ?>

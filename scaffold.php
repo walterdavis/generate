@@ -6,10 +6,10 @@ define('MYACTIVERECORD_CHARSET', 'UTF-8'); //whatever your DB is set to use
 define('DEFAULT_LIMIT', '1000'); //top limit for FindAll
 date_default_timezone_set('US/Eastern');
 //
-require_once('templates/MyActiveRecord.php');
-require_once('templates/MyActionView.php');
 require_once('templates/inflector.php');
 require_once('templates/inflections.php');
+require_once('templates/MyActiveRecord.php');
+require_once('templates/MyActionView.php');
 require_once('templates/helpers.php');
 class ActiveRecord extends MyActiveRecord{
 
@@ -45,7 +45,7 @@ function is_linking_table($table_name,$all_tables){
 		$parts = explode('_',$table_name);
 		$matches = 0;
 		foreach($parts as $part){
-			if(in_array($part, $all_tables)){
+			if(in_array(pluralize($part), $all_tables)){
 				//this might be a linking table
 				$matches ++;
 			}
@@ -57,7 +57,7 @@ function is_linking_table($table_name,$all_tables){
 function get_child_tables($table_name,$all_tables){
 	$out = array();
 	foreach($all_tables as $table){
-		if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
+		if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table)))){
 			if(! is_linking_table($table,$tables)){
 				$out[] = $table;
 			}
@@ -68,7 +68,7 @@ function get_child_tables($table_name,$all_tables){
 function get_linked_tables($table_name,$all_tables){
 	$out = array();
 	foreach($all_tables as $table){
-		if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
+		if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table)))){
 			if(is_linking_table($table,$all_tables)){
 				$out[] = preg_replace('/_?' . $table_name . '_?/','',$table);
 			}
@@ -84,7 +84,7 @@ if(!empty($table_name) && in_array($table_name, $tables)){
 	$arrFields = get_fields_from_table($table_name);
 	if(isset($_POST['generate_wrapper'])){
 		$model = '<?php 
-class ' . ucfirst($table_name) . ' extends ActiveRecord{
+class ' . classify($table_name) . ' extends ActiveRecord{
 ';
 $model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_name',$arrFields)) ? '	function get_label(){
 		return "full_name";
@@ -93,7 +93,7 @@ $model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_
 		return $this->first_name . \' \' . $this->last_name;
 	}
 ' : '/*
-	//un-comment this function to set a specific column as the automatic label
+	//un-comment this function to set a specific property as the automatic label
 	//(used in foreign key labels and elsewhere)
 	function get_label(){
 		return "company_name";
@@ -129,10 +129,12 @@ $model .= '	function save(){
 ';
 		if(isset($_POST['children']) || isset($_POST['habtm'])){
 			$model .= "\tfunction destroy(){\n";
-			foreach($_POST['children'] as $k => $v){
-				if($v > 0){
-					$model .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
+			if(isset($_POST['children'])){
+				foreach($_POST['children'] as $k => $v){
+					if($v > 0){
+						$model .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
 ';
+					}
 				}
 			}
 			if(isset($_POST['habtm'])){
@@ -153,6 +155,7 @@ $model .= '	function save(){
 ?>
 ';
 		$view_index .= '<table>
+	<thead>
 	<tr>
 		<th>Actions</th>
 ';
@@ -162,16 +165,18 @@ $model .= '	function save(){
 ';
 		}
 		$view_index .= '	</tr>
+	</thead>
+	<tbody id="sort_list">
 <?php
 	foreach($objects as $object){
-		print \'	<tr>
+		print \'	<tr class="<?= cycle() ?>" id="id_<?= $object->id ?>">
 		<td>
 			\' . ActionView::LinkTo($object, "Show","show") . \' | \' . ActionView::LinkTo($object,"Edit","edit") . \'
 		</td>
 ';
-		$view_edit .= '<form action="" method="post" accept-charset="utf-8">
+		$view_edit .= '<form action="<?= $self ?>" method="post" accept-charset="utf-8">
 ';
-		$view_create .= '<form action="" method="post" accept-charset="utf-8">
+		$view_create .= '<form action="<?= $self ?>" method="post" accept-charset="utf-8">
 ';
 		foreach($arrFields as $k => $v){
 			if($k != 'id') {
@@ -179,7 +184,7 @@ $model .= '	function save(){
 ';
 				if($v['Type'] == 'text'){
 					$view_show .= '	<p><strong>' . $k . '</strong></p>
-	<?= ActionView::simple_format(\'' . $k . '\',$object) ?>
+	<?= m($object->' . $k . ') ?>
 ';
 				}else{
 					$view_show .= '	<p><strong>' . translate_attribute_name($k) . '</strong><br />
@@ -193,20 +198,21 @@ $model .= '	function save(){
 			$view_index .= '		<td>\' . h($object->get_value(\'' . $k . '\')) . \'</td>
 ';
 		}
-		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $this->link_to("Cancel","index", array("class" => "faux-button"))?></p>
+		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $view->link_to("Cancel","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $this->link_to("Index","index", array("class" => "faux-button"))?></p>
+		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $view->link_to("Index","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_show .= '	 <p><?= $this->link_to("Index","index", array("class" => "faux-button")) . \' \' . $this->link_to("Edit","edit", array("class" => "form_button")) ?></p>
+		$view_show .= '	 <p><?= $view->link_to("Index","index", array("class" => "faux-button")) . \' \' . $view->link_to("Edit","edit", array("class" => "form_button")) ?></p>
 ';
 		$view_index .= '	</tr>
 \';
 	}
 ?>
+	</tbody>
 </table>
-<p><?= $this->view->link_to("Create","create", array("class" => "form_button")) ?></p>
+<p><?= $view->link_to("Create","create", array("class" => "form_button")) ?></p>
 ';
 		$routing = file_get_contents('templates/routing.php');
 		$routing = str_replace(array('DSN','MARCHAR','DEFLIMIT','TZ'),array(MYACTIVERECORD_CONNECTION_STR,MYACTIVERECORD_CHARSET,DEFAULT_LIMIT,date_default_timezone_get()),$routing);
@@ -271,19 +277,22 @@ $model .= '	function save(){
 			$out .= create_directory($db);
 			$out .= create_directory($db . '/_app');
 			$out .= create_directory($db . '/_app/controllers');
-			$out .= generate_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name),ucfirst($table_name)));
+			$classname = classify($table_name);
+			$out .= generate_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,pluralize($classname),$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname));
 			$out .= generate_file($db . '/_app/controllers/default_controller.php',$default_controller);
 			$out .= create_directory($db . '/_app/helpers');
 			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');
 			$out .= create_directory($db . '/_app/lib');
 			$out .= copy_file('inflections.php',$db . '/_app/lib/inflections.php');
 			$out .= copy_file('inflector.php',$db . '/_app/lib/inflector.php');
+			$out .= copy_file('markdown.php',$db . '/_app/lib/markdown.php');
 			$out .= copy_file('MyActionController.php',$db . '/_app/lib/MyActionController.php');
 			$out .= copy_file('MyActionView.php',$db . '/_app/lib/MyActionView.php');
 			$out .= copy_file('MyActiveRecord.php',$db . '/_app/lib/MyActiveRecord.php');
+			$out .= copy_file('smartypants.php',$db . '/_app/lib/smartypants.php');
 			$out .= create_directory($db . '/_app/models');
 			$out .= copy_file('app.php', $db . '/_app/models/_app.php');
-			$out .= generate_file($db . '/_app/models/' . $table_name . '.php',$model);
+			$out .= generate_file($db . '/_app/models/' . singularize($table_name) . '.php',$model);
 			$out .= create_directory($db . '/_app/views');
 			$out .= create_directory($db . '/_app/views/layouts');
 			$out .= generate_file($db . '/_app/views/layouts/default.html.php',$default);
@@ -326,7 +335,7 @@ $model .= '	function save(){
 		}
 		//scan for children
 		foreach($tables as $table){
-			if(in_array($table_name . '_id',array_keys(get_fields_from_table($table)))){
+			if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table)))){
 				if(! is_linking_table($table,$tables)){
 					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label class="inline" for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
 				}else{

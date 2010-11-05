@@ -183,3 +183,7 @@ input.form_button {
 .right {
 	float: right;
 }
+
+.odd {
+	background-color: #fefceb;
+}

@@ -48,9 +48,9 @@
 		when creating your models: </p>
 
 		<ol>
-		<li>Each model class must have a database table named exactly the same as itself (except in
-		lower-case, for database portability).</li>
-		<li>Each model table must have an auto-incrementing integer field named <code>id</code> as its primary key.</li>
+		<li>Each model class must have a database table named in the plural form of itself (except in
+		lower-case, for database portability). The class <strong>Person</strong> would have a database table named <code>people</code>.</li>
+		<li>Each model table must have an auto-incrementing integer field as its primary key, by default this is named <code>id</code>.</li>
 		<li>Relationships between models are expressed using specially-named &#8220;foreign key&#8221; fields
 		and join tables. (More about that below.)</li>
 		</ol>
@@ -110,7 +110,7 @@
 		<li>Any Date or DateTime column that ends in <code>_at</code> or <code>_on</code> will be treated as a special
 		timestamp. If the column is named <code>created_on</code> or <code>created_at</code>, or <code>updated_at</code> or
 		<code>updated_on</code>, it will have special setter functions in the Model&#8217;s <code>save()</code> method.</li>
-		<li>Any column that is named <code>[other table name]_id</code> will be treated as a foreign key from that table</li>
+		<li>Any column that is named <code>[other table name in singular form]_id</code> will be treated as a foreign key from that table</li>
 		<li>Any table which has a foreign key in another table can choose to perform
 		cascading deletes in its <code>destroy()</code> method.</li>
 		</ul>
@@ -137,9 +137,9 @@
 		<h3 id="cascading_delete">Cascading Delete</h3>
 
 		<p>Dependent delete will be offered as an option if the table includes a field 
-		named <code>[some other table]_id</code>. If so, checking this option will include the 
+		named <code>[other table in singular form]_id</code>. If so, checking this option will include the 
 		logic to clean up dependent records from that other table. For example, if 
-		you delete a Blog Post, all of the Comments with a matching <code>posts_id</code> will 
+		you delete a Blog Post, all of the Comments with a matching <code>post_id</code> will 
 		be deleted at the same time. You don&#8217;t need to choose this if you don&#8217;t need it.</p>
 
 		<h2 id="generate_the_site">Generate the Site</h2>
@@ -170,7 +170,7 @@
 
 		<p>The content of the Model, View and Controller files is just a suggestion to
 		get you started. Feel free to add or delete methods to the controller, which
-		will be mapped automatically to matching URLs. <code>[model]/[controller method]/[id]</code>
+		will be mapped automatically to matching URLs. <code>[model plural]/[controller method]/[id]</code>
 		is the basic idea. This strategy is set in the routing.php file, and can be
 		modified there.</p>
 </div>

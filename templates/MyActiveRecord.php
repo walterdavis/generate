@@ -16,7 +16,7 @@
  * License
  * 
  * Copyright (c) 2006, Jake Grimley	<jake.grimley@mademedia.co.uk>
- * Copyright (c) 2009, Walter Lee Davis <waltd@wdstudio.com>
+ * Copyright (c) 2009 - 2010, Walter Lee Davis <waltd@wdstudio.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -53,11 +53,20 @@
  *	1.	This class talks to MySQL only.
  *
  *	2.	Table/Class mapping is achieved by each database table being named 
- *		IDENTICALLY to the MyActiveRecord subclass that will represent it 
- *		(but in lowercase for compatibility reasons).
+ *		as the plural form of the Class, using underscores to replace CamelCase.
  *
  *	3.	Every database table mapped by MyActiveRecord MUST have an 
- *		autoincrementing primary-key named `id`.
+ *		autoincrementing primary-key, named `id` by default, but changeable on a per-table basis.
+ *
+ * Changelog 0.6 - 0.7
+ *
+ * 1. Use Rails plural rules to fit in with MyActionPack
+ *
+ * 2. Added IsBoolean, is_boolean to identify tinyint(1) fields as boolean properties
+ *
+ * 3. Added Label and get_label to quickly get the first human-readable field from a table.
+ *
+ * 4. DbDate fix variable name error.
  *
  * Changelog 0.5 - 0.6
  * 
@@ -304,16 +313,16 @@ class MyActiveRecord
 	*/
 	function Class2Table($mxd)
 	{
-		$origClass = is_object($mxd) ? get_class($mxd) : $mxd;
+		$origClass = is_object($mxd) ? classify(get_class($mxd)) : classify($mxd);
 		class_exists($origClass)
 			or trigger_error("MyActiveRecord::Class2Table - Class $origClass does not exist", E_USER_ERROR);
 		$class = $origClass;
-		while( !MyActiveRecord::TableExists( strtolower($class) ) && $class !='MyActiveRecord' )
+		while( !MyActiveRecord::TableExists( tableize($class) ) && $class !='MyActiveRecord' )
 		{
 			$class = get_parent_class($class);
 		}
-		$table = strtolower($class);
-		if($table=='myactiverecord')
+		$table = tableize($class);
+		if($class == 'MyActiveRecord')
 		{
 			trigger_error("MyActiveRecord::Class2Table - Class $origClass does not have a table representation", E_USER_ERROR);
 			return false;
@@ -480,11 +489,11 @@ class MyActiveRecord
 	 * @static
 	 * @param	string	strClass1	name of first class/table, e.g. 'Person'
 	 * @param	string	strClass2	name of second class/table e.g. 'Role'
-	 * @return	string	name of linking table
+	 * @return	string	name of linking table: person_role
 	 */
 	function GetLinkTable($strClass1, $strClass2)
 	{
-		$array = array( MyActiveRecord::Class2Table($strClass1), MyActiveRecord::Class2Table($strClass2) );
+		$array = array( singularize(MyActiveRecord::Class2Table($strClass1)), singularize(MyActiveRecord::Class2Table($strClass2)) );
 		sort($array);
 		return implode( '_', $array);
 	}
@@ -503,16 +512,18 @@ class MyActiveRecord
 		$k = $obj1->_primary_key;
 		$k2 = $obj2->_primary_key;
 		$table1=MyActiveRecord::Class2Table($obj1);
+		$fkey1 = singularize($table1);
 		$table2=MyActiveRecord::Class2Table($obj2);
+		$fkey2 = singularize($table2);
 		$linktable = MyActiveRecord::GetLinkTable($table1, $table2);
-		$sql = "REPLACE INTO {$linktable} ({$table1}_id, {$table2}_id) VALUES (" . $obj1->$k . ", " . $obj2->$k2 . ")";
+		$sql = "REPLACE INTO {$linktable} ({$fkey1}_id, {$fkey2}_id) VALUES (" . $obj1->$k . ", " . $obj2->$k2 . ")";
 		if( MyActiveRecord::Query($sql) )
 		{
 			return true;
 		}
 		else
 		{
-			trigger_error("MyActiveRecord::Link() - Failed to link objects: $table1, $table2", E_USER_WARNING);
+			trigger_error("MyActiveRecord::Link() - Failed to link objects: " . classify($table1) . ", " . classify($table2), E_USER_WARNING);
 			return false;
 		}
 	}
@@ -530,16 +541,18 @@ class MyActiveRecord
 		$k = $obj1->_primary_key;
 		$k2 = $obj2->_primary_key;
 		$table1=MyActiveRecord::Class2Table($obj1);
+		$fkey1 = singularize($table1);
 		$table2=MyActiveRecord::Class2Table($obj2);
+		$fkey2 = singularize($table2);
 		$linktable = MyActiveRecord::GetLinkTable($table1, $table2);
-		$sql = "DELETE FROM {$linktable} WHERE {$table1}_id = " . $obj1->$k . " AND {$table2}_id = " . $obj2->$k2;
+		$sql = "DELETE FROM {$linktable} WHERE {$fkey1}_id = " . $obj1->$k . " AND {$fkey2}_id = " . $obj2->$k2;
 		if( MyActiveRecord::Query($sql) )
 		{
 			return true;
 		}
 		else
 		{
-			trigger_error("MyActiveRecord::UnLink() - Failed to unlink objects: $table1, $table2", E_USER_WARNING);
+			trigger_error("MyActiveRecord::UnLink() - Failed to unlink objects: " . classify($table1) . ", " . classify($table2), E_USER_WARNING);
 			return false;
 		}
 	}
@@ -641,7 +654,7 @@ class MyActiveRecord
 	}
 	
 	function is_boolean($strField){
-		return MyActiveRecord::IsBoolean(strtolower(get_class($this)),$strField);
+		return MyActiveRecord::IsBoolean(get_class($this),$strField);
 	}
 		
 	/**
@@ -735,7 +748,7 @@ class MyActiveRecord
 			$strSQL.=$strWhere;
 		}
 		// check for single-table-inheritance
-		if( strtolower($strClass) != $table )
+		if( tableize($strClass) != $table )
 		{
 			$strSQL.= $mxdWhere ? " AND class LIKE '$strClass' ":" WHERE class LIKE '$strClass' ";
 		}
@@ -934,7 +947,7 @@ class MyActiveRecord
 			$table = MyActiveRecord::Class2Table(get_class($this));
 			
 			// check for single-table-inheritance
-			if( strtolower(get_class($this)) != $table )
+			if( tableize(get_class($this)) != $table )
 			{
 				$this->class = get_class($this);
 			}
@@ -1258,10 +1271,12 @@ class MyActiveRecord
 		{
 			// only attempt to find links if this object has an id
 			$table = MyActiveRecord::Class2Table($strClass);
+			$fkey = strtolower($strClass);
 			$thistable = MyActiveRecord::Class2Table($this);
+			$thiskey = singularize($thistable);
 			$linktable=MyActiveRecord::GetLinkTable($table, $thistable);
 			$strOrder = $strOrder ? $strOrder: "{$strClass}.{$k}";
-			$sql= "SELECT {$table}.* FROM {$table} INNER JOIN {$linktable} ON {$table}_id = {$table}.$k2 WHERE $linktable.{$thistable}_id = " . $this->$k . " ";
+			$sql= "SELECT {$table}.* FROM {$table} INNER JOIN {$linktable} ON {$fkey}_id = {$table}.$k2 WHERE $linktable.{$thiskey}_id = " . $this->$k . " ";
 				if( is_array($mxdCondition) )
 				{
 					foreach($mxdCondition as $key=>$val)
@@ -1337,11 +1352,13 @@ class MyActiveRecord
 			$this->$k = intval($this->$k);
 			// only attempt to find links if this object has an id
 			$table = MyActiveRecord::Class2Table($strClass);
+			$fkey = strtolower($strClass);
 			$f = MyActiveRecord::Create($strClass);
 			$k2 = $f->_primary_key;
 			$thistable = MyActiveRecord::Class2Table($this);
+			$thiskey = singularize($thistable);
 			$linktable=MyActiveRecord::GetLinkTable($table, $thistable);
-			$sql= "SELECT COUNT(1) AS _count FROM {$table} INNER JOIN {$linktable} ON {$table}_id = {$table}.{$k2} WHERE $linktable.{$thistable}_id = " . $this->$k . " ";
+			$sql= "SELECT COUNT(1) AS _count FROM {$table} INNER JOIN {$linktable} ON {$fkey}_id = {$table}.{$k2} WHERE $linktable.{$thiskey}_id = " . $this->$k . " ";
 				if( is_array($mxdCondition) )
 				{
 					foreach($mxdCondition as $key=>$val)

@@ -27,16 +27,13 @@ class MyActionController{
 		}
 	}
 	function create(){
-		$this->view->object = $this->object;
-		return $this->view->render("create");
+		return render("create", $this->object);
 	}
 	function edit(){
-		$this->view->object = $this->object;
-		return $this->view->render("edit");
+		return render("edit", $this->object);
 	}
 	function show(){
-		$this->view->object = $this->object;
-		return $this->view->render("show");
+		return render("show", $this->object);
 	}
 }
 ?>
