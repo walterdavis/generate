@@ -130,5 +130,5 @@ to link up the various parts of the Model / View / Controller stack.
 The content of the Model, View and Controller files is just a suggestion to
 get you started. Feel free to add or delete methods to the controller, which
 will be mapped automatically to matching URLs. `[model plural]/[controller method]/[id]`
-is the basic idea. This strategy is set in the routing.php file, and can be
+is the basic idea. This strategy is set in the _routing.php file, and can be
 modified there.
