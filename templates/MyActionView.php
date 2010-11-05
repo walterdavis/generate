@@ -95,6 +95,7 @@ Class MyActionView{
 	}
 	
 	function Input($name, $arrField = array(), $html = array()){
+		$label = humanize($name);
 		if($name == 'id'){
 			$field_html = array();
 			$out = '<input type="hidden" name="id" value="<?=$object->id?>"%s />';
@@ -104,10 +105,10 @@ Class MyActionView{
 		}elseif($name == 'delete'){
 			$field_html = array('id' => 'delete', 'class' => 'delete');
 			$out = '&nbsp; <input type="submit" name="delete" value="Delete"%s/>';
-		}elseif(substr($name,-3) == '_id' && MyActiveRecord::TableExists(substr($name, 0, -3))){
+		}elseif(substr($name,-3) == '_id' && MyActiveRecord::TableExists(tableize(substr($name, 0, -3)))){
 			$parent_name = substr($name, 0, -3);
 			$field_html = array();
-			$out = '<label for="' . $name . '"%s>' . $parent_name . '</label>';
+			$out = '<label for="' . $name . '"%s>' . humanize($parent_name) . '</label>';
 			$html_array_as_string = 'array(';
 			foreach($html as $k => $v){
 				$html_array_as_string .= "'" . $k . "' => " . $v . "',";
@@ -115,20 +116,20 @@ Class MyActionView{
 			if(substr($html_array_as_string,-1) == ',') $html_array_as_string = substr($html_array_as_string,-1);
 			$html_array_as_string .= ')';
 			$out .= '
-<?= $this->ParentPicker(\'' . $name . '\', false, ' . $html_array_as_string . ') ?>';
+<?= $view->ParentPicker(\'' . $name . '\', false, ' . $html_array_as_string . ') ?>';
 		}elseif(isset($arrField['Field']) && (preg_match('/password/',$arrField['Field'])) || (isset($arrField['Type']) && (preg_match('/password/',$arrField['Type'])))){
 			$field_html = array('class' => 'password');
-			$out = '<label for="' . $name . '">' . $name . '</label><input type="password" name="' . $name . '" value="" id="' . $name . '"%s/>';
+			$out = '<label for="' . $name . '">' . $label . '</label><input type="password" name="' . $name . '" value="" id="' . $name . '"%s/>';
 		}else{
 			switch ($arrField['Type']) {
 				case 'tinyint(1)':
 					//boolean
 					$field_html = array('class' => 'boolean');
-					$out = '<label for="' . $name . '">' . $name . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" <?= ($object->' . $name . ' > 0) ? \' checked="checked"\' : \'\' ?>%s/>';
+					$out = '<label for="' . $name . '">' . $label . '</label><input type="hidden" name="' . $name . '" value="0" /><input type="checkbox" name="' . $name . '" value="1" id="' . $name . '" <?= ($object->' . $name . ' > 0) ? \' checked="checked"\' : \'\' ?>%s/>';
 					break;
 				case 'text':
 					$field_html = array();
-					$out = '<label for="' . $name . '">' . $name . '</label><textarea name="' . $name . '" rows="8" cols="40"%s><?=$object->h(\'' . $name . '\')?></textarea>';
+					$out = '<label for="' . $name . '">' . $label . '</label><textarea name="' . $name . '" rows="8" cols="40"%s><?=$object->h(\'' . $name . '\')?></textarea>';
 					break;
 				default:
 					if(isset($arrField['Type']) && isset($arrField['Field'])){
@@ -147,7 +148,7 @@ Class MyActionView{
 						}
 					}
 					if(false !== array_search($name,array('added_at','added_on','updated_at','updated_on'))) $field_html['disabled'] = 'disabled';
-					$out = '<label for="' . $name . '">' . $name . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '"%s/>';
+					$out = '<label for="' . $name . '">' . $label . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '"%s/>';
 					break;
 			}
 		}
