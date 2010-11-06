@@ -183,11 +183,11 @@ $model .= '	function save(){
 				$view_create .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
 				if($v['Type'] == 'text'){
-					$view_show .= '	<p><strong>' . $k . '</strong></p>
+					$view_show .= '	<p><strong>' . humanize($k) . '</strong></p>
 	<?= m($object->' . $k . ') ?>
 ';
 				}else{
-					$view_show .= '	<p><strong>' . translate_attribute_name($k) . '</strong><br />
+					$view_show .= '	<p><strong>' . humanize(translate_attribute_name($k)) . '</strong><br />
 		<?= h($object->get_value(\'' . $k . '\')) ?>
 	</p>
 ';
