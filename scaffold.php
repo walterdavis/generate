@@ -204,7 +204,7 @@ $model .= '	function save(){
 		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $view->link_to("Index","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_show .= '	 <p><?= $view->link_to("Index","index", array("class" => "faux-button")) . \' \' . $view->link_to("Edit","edit", array("class" => "form_button")) ?></p>
+		$view_show .= '	<p><?= $view->link_to("Index","index", array("class" => "faux-button")) . \' \' . $view->link_to("Edit","edit", array("class" => "form_button")) ?></p>
 ';
 		$view_index .= '	</tr>
 \';

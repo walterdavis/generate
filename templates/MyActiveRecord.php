@@ -1273,9 +1273,10 @@ class MyActiveRecord
 			$table = MyActiveRecord::Class2Table($strClass);
 			$fkey = strtolower($strClass);
 			$thistable = MyActiveRecord::Class2Table($this);
+			$thattable = tableize($strClass);
 			$thiskey = singularize($thistable);
 			$linktable=MyActiveRecord::GetLinkTable($table, $thistable);
-			$strOrder = $strOrder ? $strOrder: "{$strClass}.{$k}";
+			$strOrder = $strOrder ? $strOrder: "{$thattable}.{$k}";
 			$sql= "SELECT {$table}.* FROM {$table} INNER JOIN {$linktable} ON {$fkey}_id = {$table}.$k2 WHERE $linktable.{$thiskey}_id = " . $this->$k . " ";
 				if( is_array($mxdCondition) )
 				{
