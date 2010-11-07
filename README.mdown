@@ -9,6 +9,8 @@ support for parent/child relationships and many-to-many relationships. Each
 model's destroy method can clean up child and related records if you choose
 that option in the generator form.
 
+Version 0.5 - first public release
+
 ##ActiveRecord and MyActiveRecord
 Active Record is a software design pattern popularized by Martin Fowler, and taken to its
 logical conclusion in the Ruby on Rails framework. MyActiveRecord was written by Jake
