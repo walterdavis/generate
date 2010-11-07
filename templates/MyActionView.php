@@ -37,6 +37,21 @@ Class MyActionView{
 		return $out;
 	}
 	
+	function children_picker($strClass){
+		$out = '<div class="children_picker" id="' . tableize($strClass) . '">
+';
+		$links = $this->object->find_linked($strClass);
+		foreach(MyActiveRecord::FindAll($strClass) as $target){
+			$checked = (array_key_exists($target->id,$links)) ? ' checked="checked"' : '';
+			$out .= '<p><input type="hidden" name="' . tableize($strClass) . '[0]" value="0"/><input type="checkbox" class="right" name="' . tableize($strClass) . '[' . $target->id . ']" id="' . tableize($strClass) . '_' . $target->id . '" value="1"' . $checked . ' /><label class="inline" for="' . tableize($strClass) . '_' . $target->id . '">' . h($target->{$target->get_label()}) . '</label></p>
+';
+		}
+		$out .= '
+</div>
+';
+		return $out;
+	}
+	
 
 	function ParentPicker($strKey,$boolCombo = false, $html = array()){
 		if(!$boolCombo && MyActiveRecord::AllowNull(get_class($this->object),$strKey)) $boolCombo = true;

@@ -17,7 +17,7 @@ class %sController extends ActionController{
 		$this->object = ActiveRecord::FindById("%s",$id);
 		if(isset($_POST["save"])){
 			$this->object->populate($_POST);
-			$this->object->save();
+%s			$this->object->save();
 			$this->manage_result("edit", "%s updated successfully");
 		}
 		return parent::edit();

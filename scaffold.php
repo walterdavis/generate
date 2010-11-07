@@ -94,12 +94,22 @@ $model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_
 	}
 ' : '/*
 	//un-comment this function to set a specific property as the automatic label
-	//(used in foreign key labels and elsewhere)
+	//(used in foreign key field labels and elsewhere)
 	function get_label(){
 		return "company_name";
 	}
 */
 ';
+$edit_habtm = $save_habtm = '';
+foreach(get_linked_tables($table_name, $tables) as $link){
+	$k = pluralize(preg_replace('/_?' . singularize($table_name) . '_?/','',$link));
+;	$edit_habtm .= '	<div><label for="' . $k . '">' . humanize($k) . '</label>
+		<?= $view->children_picker("' . classify($k) . '") ?></div>
+';
+	$save_habtm .= '		 	$this->object->set_attached("' . classify($k) . '",array_keys($_POST["' . $k . '"]));
+';
+}
+
 $model .= '	function save(){
 ';
 		foreach(array('regexp','existence','uniqueness_of','email') as $validation){
@@ -201,7 +211,7 @@ $model .= '	function save(){
 		$view_create .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ' <?= $view->link_to("Cancel","index", array("class" => "faux-button"))?></p>
 </form>
 ';
-		$view_edit .= '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $view->link_to("Index","index", array("class" => "faux-button"))?></p>
+		$view_edit .= $edit_habtm . '	<p>' . ActionView::Input('save', array(), array('class' => 'form_button')) . ActionView::Input('delete', array(), array('class' => 'form_button','onclick' => 'return confirm(\'Are you sure?\');')) . ' <?= $view->link_to("Index","index", array("class" => "faux-button"))?></p>
 </form>
 ';
 		$view_show .= '	<p><?= $view->link_to("Index","index", array("class" => "faux-button")) . \' \' . $view->link_to("Edit","edit", array("class" => "form_button")) ?></p>
@@ -278,7 +288,7 @@ $model .= '	function save(){
 			$out .= create_directory($db . '/_app');
 			$out .= create_directory($db . '/_app/controllers');
 			$classname = classify($table_name);
-			$out .= generate_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,pluralize($classname),$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname,$classname));
+			$out .= generate_file($db . '/_app/controllers/' . $table_name . '_controller.php',sprintf($controller,pluralize($classname),$classname,$classname,$classname,$classname,$save_habtm,$classname,$classname,$classname,$classname,$classname,$classname));
 			$out .= generate_file($db . '/_app/controllers/default_controller.php',$default_controller);
 			$out .= create_directory($db . '/_app/helpers');
 			$out .= copy_file('helpers.php',$db . '/_app/helpers/helpers.php');

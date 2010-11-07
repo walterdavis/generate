@@ -1137,18 +1137,15 @@ class MyActiveRecord
 	{
 		if( is_array($arrID) )
 		{
-			MyActiveRecord::Begin();
-			$pass = true;
 			foreach( $this->find_linked($strClass) as $fObject )
 			{
-				$this->detach($fObject) or $pass=false;
+				$this->detach($fObject);
 			}
 			foreach( MyActiveRecord::FindById($strClass, $arrID) as $fObject )
 			{
-				$this->attach($fObject) or $pass=false;
+				$this->attach($fObject);
 			}
-			$pass ? MyActiveRecord::Commit() : MyActiveRecord::RollBack();
-			return $pass;
+			return true;
 		}
 		else
 		{
