@@ -21,7 +21,7 @@ class ActiveRecord extends MyActiveRecord{
 				return false;
 			}
 		}
-		return false;
+		trigger_error("ActiveRecord::__get() - could not find attribute: ".$key, E_USER_ERROR);
 	}
 	//as near to method_missing as PHP can get at the moment
 	function __call($method,$arguments){
@@ -64,7 +64,7 @@ class ActiveRecord extends MyActiveRecord{
 				}
 			}
 		}
-		return false;
+		trigger_error("ActiveRecord::__call() - could not find method: ".$method, E_USER_ERROR);
 	}
 	function get_value($fieldname){
 		if(substr($fieldname,-3) == '_id'){
