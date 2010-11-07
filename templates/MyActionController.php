@@ -2,7 +2,7 @@
 /**
  * MyActionController
  *
- * A companion Controller class for MyActiveRecord.
+ * A companion Controller class for MyActiveRecord. Together with MyActionView, forms MyActionPack.
  *
  * License
  * 

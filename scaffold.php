@@ -6,6 +6,45 @@ define('MYACTIVERECORD_CHARSET', 'UTF-8'); //whatever your DB is set to use
 define('DEFAULT_LIMIT', '1000'); //top limit for FindAll
 date_default_timezone_set('US/Eastern');
 //
+/**
+ * Generate/Scaffold
+ *
+ * A lightweight generator script for MyActiveRecord and MyActionPack.
+ *
+ * Version: 0.5 - first public release
+ *
+ * License
+ * 
+ * Copyright (c) 2010, Walter Lee Davis <waltd@wdstudio.com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *	-	Redistributions of source code must retain the above copyright notice, 
+ *		this list of conditions and the following disclaimer.
+ *
+ *	-	Redistributions in binary form must reproduce the above copyright 
+ *		notice, this list of conditions and the following disclaimer in the 
+ *		documentation and/or other materials provided with the distribution.
+ *
+ *	-	Neither the name of Generate/Scaffold nor the names of its contributors 
+ *		may be used to endorse or promote products derived from this 
+ *		software without specific prior written permission.
+ *
+ *	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
+ *	IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ *	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ *	PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ *	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ *	EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ *	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+ *	PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+ *	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+ *	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ *	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 require_once('templates/inflector.php');
 require_once('templates/inflections.php');
 require_once('templates/MyActiveRecord.php');
@@ -70,7 +109,7 @@ function get_linked_tables($table_name,$all_tables){
 	foreach($all_tables as $table){
 		if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table)))){
 			if(is_linking_table($table,$all_tables)){
-				$out[] = preg_replace('/_?' . $table_name . '_?/','',$table);
+				$out[] = pluralize(preg_replace('/_?' . singularize($table_name) . '_?/','',$table));
 			}
 		}
 	}
@@ -102,11 +141,10 @@ $model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_
 ';
 $edit_habtm = $save_habtm = '';
 foreach(get_linked_tables($table_name, $tables) as $link){
-	$k = pluralize(preg_replace('/_?' . singularize($table_name) . '_?/','',$link));
-;	$edit_habtm .= '	<div><label for="' . $k . '">' . humanize($k) . '</label>
-		<?= $view->children_picker("' . classify($k) . '") ?></div>
+;	$edit_habtm .= '	<div><label for="' . $link . '">' . humanize($link) . '</label>
+		<?= $view->children_picker("' . classify($link) . '") ?></div>
 ';
-	$save_habtm .= '		 	$this->object->set_attached("' . classify($k) . '",array_keys($_POST["' . $k . '"]));
+	$save_habtm .= '		 	$this->object->set_attached("' . classify($link) . '",array_keys($_POST["' . $link . '"]));
 ';
 }
 
@@ -142,7 +180,7 @@ $model .= '	function save(){
 			if(isset($_POST['children'])){
 				foreach($_POST['children'] as $k => $v){
 					if($v > 0){
-						$model .= '		foreach($this->find_children(\'' . $k . '\') as $c) $c->destroy();
+						$model .= '		foreach($this->find_children(\'' . classify($k) . '\') as $c) $c->destroy();
 ';
 					}
 				}
@@ -150,7 +188,7 @@ $model .= '	function save(){
 			if(isset($_POST['habtm'])){
 				foreach($_POST['habtm'] as $k => $v){
 					if($v > 0){
-						$model .= '		foreach($this->find_attached(\'' . $k . '\') as $a) $this->detach($a);
+						$model .= '		foreach($this->find_attached(\'' . classify($k) . '\') as $a) $this->detach($a);
 ';
 					}
 				}
@@ -349,7 +387,7 @@ $model .= '	function save(){
 				if(! is_linking_table($table,$tables)){
 					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label class="inline" for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
 				}else{
-					$partner = preg_replace('/_?' . $table_name . '_?/','',$table);
+					$partner = pluralize(preg_replace('/_?' . singularize($table_name) . '_?/','',$table));
 					$out .= '<p><span class="field"><strong>' . $partner . '</strong></span>(many-to-many)<input type="hidden" name="habtm[' . $partner . ']" value="0"/><label class="inline" for="habtm_' . $partner . '"><input type="checkbox" name="habtm[' . $partner . ']" id="habtm_' . $partner . '" value="1" />Unlink Related Records on Delete</label></p>';
 				}
 			}
