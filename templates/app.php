@@ -63,6 +63,26 @@ class ActiveRecord extends MyActiveRecord{
 					return ActiveRecord::$finder($findClass,$strWhere);
 				}
 			}
+			if(substr($next,0,4) == '_like_'){
+				$next = substr($next,4);
+				if(false !== strstr($next,'_and_')){
+					$link = ' AND ';
+					$parts = explode('_and_',$next);
+				}elseif(false !== strstr($next,'_or_')){
+					$link = ' OR ';
+					$parts = explode('_or_',$next);
+				}else{
+					return ActiveRecord::$finder($findClass,"`{$next}` LIKE \"%" . $arguments[0] . '%"');
+				}
+				if(count($parts) == count($arguments)){
+					$strWhere = '';
+					foreach($parts as $key => $val){
+						$strWhere .= ($key > 0) ? $link : '';
+						$strWhere .= '`' . $val . '` LIKE "%' . $arguments[$key] . '%"';
+					}
+					return ActiveRecord::$finder($findClass,$strWhere);
+				}
+			}
 		}
 		trigger_error("ActiveRecord::__call() - could not find method: ".$method, E_USER_ERROR);
 	}

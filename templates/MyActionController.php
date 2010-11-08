@@ -50,6 +50,10 @@ class MyActionController{
 		}
 		$this->view->object = $this->object;
 	}
+	function is_ajax(){
+		return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+			($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'));
+	}
 	function redirect_to($strNextAction){
 		header("Location: " . MyActionView::url_for($strNextAction,$this->object));
 		exit;
