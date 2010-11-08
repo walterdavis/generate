@@ -44,10 +44,10 @@ Class MyActionView{
 		foreach($arrOptions as $k=>$o) {
 			if($boolUseKeyAsValue){
 				$out .= '<option label="' . $o . '" value="' . $k . '"';
-				$out .= ($this->object->id > 0 && $k == $this->object->$strKey) ? ' selected="selected"' : '';
+				$out .= ($this->object->{$this->object->_primary_key} > 0 && $k == $this->object->$strKey) ? ' selected="selected"' : '';
 			}else{
 				$out .= '<option label="' . $o . '" value="' . $o . '"';
-				$out .= ($this->object->id > 0 && $o == $this->object->$strKey && '' !== $this->object->$strKey) ? ' selected="selected"' : '';
+				$out .= ($this->object->{$this->object->_primary_key} > 0 && $o == $this->object->$strKey && '' !== $this->object->$strKey) ? ' selected="selected"' : '';
 			}
 			$out .= '>' . $o . '</option>';
 		}
@@ -78,8 +78,8 @@ Class MyActionView{
 ';
 		$links = $this->object->find_linked($strClass);
 		foreach(MyActiveRecord::FindAll($strClass) as $target){
-			$checked = (array_key_exists($target->id,$links)) ? ' checked="checked"' : '';
-			$out .= '<p><input type="hidden" name="' . tableize($strClass) . '[0]" value="0"/><input type="checkbox" class="right" name="' . tableize($strClass) . '[' . $target->id . ']" id="' . tableize($strClass) . '_' . $target->id . '" value="1"' . $checked . ' /><label class="inline" for="' . tableize($strClass) . '_' . $target->id . '">' . h($target->{$target->get_label()}) . '</label></p>
+			$checked = (array_key_exists($target->{$target->_primary_key},$links)) ? ' checked="checked"' : '';
+			$out .= '<p><input type="hidden" name="' . tableize($strClass) . '[0]" value="0"/><input type="checkbox" class="right" name="' . tableize($strClass) . '[' . $target->{$target->_primary_key} . ']" id="' . tableize($strClass) . '_' . $target->_primary_key . '" value="1"' . $checked . ' /><label class="inline" for="' . tableize($strClass) . '_' . $target->_primary_key . '">' . h($target->{$target->get_label()}) . '</label></p>
 ';
 		}
 		$out .= '
@@ -99,8 +99,8 @@ Class MyActionView{
 		$name = $model->get_label();
 		$objects = MyActiveRecord::FindAll($model_name);
 		foreach($objects as $o) {
-			$out .= '<option label="' . $o->h($name) . '" value="' . $o->id . '"';
-			$out .= ($this->object->$strKey == $o->id) ? ' selected="selected"' : '';
+			$out .= '<option label="' . $o->h($name) . '" value="' . $o->{$o->_primary_key} . '"';
+			$out .= ($this->object->$strKey == $o->{$o->_primary_key}) ? ' selected="selected"' : '';
 			$out .= '>' . $o->h($name) . '</option>';
 		}
 		foreach($html as $k => $v){
@@ -147,9 +147,9 @@ Class MyActionView{
 	
 	function Input($name, $arrField = array(), $html = array()){
 		$label = humanize($name);
-		if($name == 'id'){
+		if(isset($arrField['Extra']) && $arrField['Extra'] == 'auto_increment'){
 			$field_html = array();
-			$out = '<input type="hidden" name="id" value="<?=$object->id?>"%s />';
+			$out = '<input type="hidden" name="id" value="<?=$object->{$object->_primary_key}?>"%s />';
 		}elseif($name == 'save'){
 			$field_html = array('id' => 'save', 'class' => 'save');
 			$out = '<label for="save">&nbsp;</label><input type="submit" name="save" value="Save"%s />';
@@ -240,14 +240,14 @@ Class MyActionView{
 		if(substr($strAction,0,1) == '/') return $strAction;
 		$controller = tableize(get_class($object));
 		$link = "/" . $controller . "/" . $strAction;
-		if($object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->id;
+		if($object->{$object->_primary_key} > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->{$object->_primary_key};
 		return $link;
 	}
 	function url_for($strAction){
 		if(substr($strAction,0,1) == '/') return $strAction;
 		$controller = tableize(get_class($this->object));
 		$link = "/" . $controller . "/" . $strAction;
-		if($this->object->id > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $this->object->id;
+		if($this->object->{$this->object->_primary_key} > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $this->object->{$this->object->_primary_key};
 		return $link;
 	}
 	function simple_format($strKey){

@@ -1003,6 +1003,7 @@ class MyActiveRecord
 			foreach($arrVals as $key=>$val)
 			{
 				if(property_exists($this,$key))$this->$key=$val;
+				if($key == 'id' && $this->_primary_key != 'id') $this->{$this->_primary_key} = $val;
 			}
 			return true;
 		}
@@ -1273,8 +1274,8 @@ class MyActiveRecord
 			$thattable = tableize($strClass);
 			$thiskey = singularize($thistable);
 			$linktable=MyActiveRecord::GetLinkTable($table, $thistable);
-			$strOrder = $strOrder ? $strOrder: "{$thattable}.{$k}";
-			$sql= "SELECT {$table}.* FROM {$table} INNER JOIN {$linktable} ON {$fkey}_id = {$table}.$k2 WHERE $linktable.{$thiskey}_id = " . $this->$k . " ";
+			$strOrder = $strOrder ? $strOrder: "{$thattable}.{$k2}";
+			$sql= "SELECT {$table}.* FROM {$table} INNER JOIN {$linktable} ON {$linktable}.{$fkey}_id = {$table}.$k2 WHERE {$linktable}.{$thiskey}_id = " . $this->$k . " ";
 				if( is_array($mxdCondition) )
 				{
 					foreach($mxdCondition as $key=>$val)

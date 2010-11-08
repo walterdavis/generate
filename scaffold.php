@@ -67,17 +67,7 @@ function __autoload($class_name) {
 	if(file_exists(dirname(__FILE__) . '/generated_code' . $db . '/_app/controllers/' . $class_name_path . '.php')){
 		return require (dirname(__FILE__) . '/generated_code' . $db . '/_app/controllers/' . $class_name_path . '.php');
 	}
-	trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.', E_USER_ERROR);
-}
-function get_fields_from_table($table_name){
-	$arrFields = array();
-	if( $rscResult = ActiveRecord::Query("SHOW COLUMNS FROM $table_name") ){
-		while( $col = mysql_fetch_assoc($rscResult) ){
-			$arrFields[$col['Field']] = $col;
-		}
-		mysql_free_result($rscResult);
-	}
-	return $arrFields;
+	trigger_error('Could not load the "' . $class_name . '" class. Make sure you have generated it before trying again.' . "\n" . var_dump(debug_backtrace()), E_USER_ERROR);
 }
 function is_linking_table($table_name,$all_tables){
 	if(false !== strpos($table_name,'_')){
@@ -121,9 +111,12 @@ $arrFields = array();
 $tables = ActiveRecord::Tables();
 if(!empty($table_name) && in_array($table_name, $tables)){
 	$arrFields = get_fields_from_table($table_name);
+	$pk = get_primary_key($table_name);
 	if(isset($_POST['generate_wrapper'])){
 		$model = '<?php 
 class ' . classify($table_name) . ' extends ActiveRecord{
+';
+if($pk != 'id') $model .= '	var $_primary_key = "' . $pk . '";
 ';
 $model .= (array_key_exists('first_name', $arrFields) && array_key_exists('last_name',$arrFields)) ? '	function get_label(){
 		return "full_name";
@@ -166,7 +159,7 @@ $model .= '	function save(){
 			foreach($_POST['timestamps'] as $field){
 				$function = (substr($field,-3) == '_at') ? '$this->DbDateTime();' : '$this->DbDate();';
 				$cleanup_function = (substr($field,-3) == '_at') ? '$this->DbDateTime(strtotime($this->' . $field . ',time()));' : '$this->DbDate(strtotime($this->' . $field . ',time()));';
-				$condition = (substr($field,0,6) == 'added_') ? 'if($this->id < 1) ' : '';
+				$condition = (substr($field,0,6) == 'added_') ? 'if($this->' . $pk . ' < 1) ' : '';
 				$model .= (preg_match('/^added|^updated/',$field)) ? "\t\t" . $condition . '$this->' . $field . ' = ' . $function . '
 ' : "\t\t" . $condition . '$this->' . $field . ' = ' . $cleanup_function . '
 ';
@@ -208,7 +201,7 @@ $model .= '	function save(){
 		<th>Actions</th>
 ';
 		foreach($arrFields as $k => $v){
-			$k = translate_attribute_name($k);
+			$k = translate_attribute_name($k, $table_name);
 			$view_index .= '		<th>' . humanize($k) . '</th>
 ';
 		}
@@ -217,7 +210,7 @@ $model .= '	function save(){
 	<tbody id="sort_list">
 <?php
 	foreach($objects as $object){
-		print \'	<tr class="<?= cycle() ?>" id="id_<?= $object->id ?>">
+		print \'	<tr class="\' . cycle() . \'" id="\' . $object->' . $pk . ' . \'">
 		<td>
 			\' . ActionView::LinkTo($object, "Show","show") . \' | \' . ActionView::LinkTo($object,"Edit","edit") . \'
 		</td>
@@ -227,7 +220,7 @@ $model .= '	function save(){
 		$view_create .= '<form action="<?= $self ?>" method="post" accept-charset="utf-8">
 ';
 		foreach($arrFields as $k => $v){
-			if($k != 'id') {
+			if($v['Extra'] != 'auto_increment') {
 				$view_create .= '	<p>' . ActionView::Input($k, $v) . '</p>
 ';
 				if($v['Type'] == 'text'){
@@ -235,7 +228,7 @@ $model .= '	function save(){
 	<?= m($object->' . $k . ') ?>
 ';
 				}else{
-					$view_show .= '	<p><strong>' . humanize(translate_attribute_name($k)) . '</strong><br />
+					$view_show .= '	<p><strong>' . humanize(translate_attribute_name($k, $table_name)) . '</strong><br />
 		<?= h($object->get_value(\'' . $k . '\')) ?>
 	</p>
 ';
@@ -365,8 +358,8 @@ $model .= '	function save(){
 ';
 		
 		foreach($arrFields as $k => $v){
-			if($k == 'id'){
-				$out .= '<p><span class="field">id</span>(primary key)</p>';
+			if($k == $pk){
+				$out .= '<p><span class="field">' . $pk . '</span>(primary key)</p>';
 			}elseif(substr($k,-3) == '_id'){
 				$out .= '<p><span class="field">' . $k . '</span>(parent key)</p>';
 			}elseif(preg_match('/_at$|_on$/',$k) && preg_match('/date/',$v['Type'])){
@@ -383,7 +376,7 @@ $model .= '	function save(){
 		}
 		//scan for children
 		foreach($tables as $table){
-			if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table)))){
+			if(in_array(singularize($table_name) . '_id',array_keys(get_fields_from_table($table))) && $table != $table_name){
 				if(! is_linking_table($table,$tables)){
 					$out .= '<p><span class="field"><strong>' . $table . '</strong></span>(children)<input type="hidden" name="children[' . $table . ']" value="0"/><label class="inline" for="children_' . $table . '"><input type="checkbox" name="children[' . $table . ']" id="children_' . $table . '" value="1" />Delete Children on Delete</label></p>';
 				}else{
@@ -399,7 +392,7 @@ $model .= '	function save(){
 	$out .= '<h2>Choose a table in “' . substr($db,1) . '”</h2>';
 	$out .= '<p>Available tables in <strong>' . substr($db,1) . '</strong>:</p><ul style="list-style-type: none; padding:0; margin: 1em 0;">';
 	foreach($tables as $table){
-		if( ! is_linking_table($table,$tables) && in_array('id',array_keys(get_fields_from_table($table)))){
+		if( ! is_linking_table($table,$tables)){ // && in_array('id',array_keys(get_fields_from_table($table)))
 			$out .= '<li style="padding: 4px; display: inline;"><a href="scaffold.php?table_name=' . $table . '" class="faux-button">' . $table . '</a></li>';
 		}
 	}

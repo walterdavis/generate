@@ -95,7 +95,39 @@ function load_models(){
 		}
 	}
 }
-function translate_attribute_name($fieldname){
+
+function get_primary_key($table_name){
+	$pk = null;
+	foreach(get_fields_from_table($table_name) as $k => $v){
+		if(!$pk && $v['Extra'] == 'auto_increment'){
+			return $k;
+		}
+	}
+	return false;
+}
+
+/**
+ * identical to MyActiveRecord::Columns, but uses raw table name rather than abstract lookup
+ *
+ * @param string $table_name 
+ * @return multi-dimensional array of fields
+ * @author Walter Lee Davis
+ */
+function get_fields_from_table($table_name){
+	$arrFields = array();
+	if( $rscResult = ActiveRecord::Query("SHOW COLUMNS FROM $table_name") ){
+		while( $col = mysql_fetch_assoc($rscResult) ){
+			$arrFields[$col['Field']] = $col;
+		}
+		mysql_free_result($rscResult);
+	}
+	return $arrFields;
+}
+
+function translate_attribute_name($fieldname, $table_name){
+	if($fieldname == get_primary_key($table_name)){
+		return classify($fieldname);
+	}
 	if(substr($fieldname,-3) == '_id'){
 		$classname = substr($fieldname, 0, -3);
 		//see if it's a classname

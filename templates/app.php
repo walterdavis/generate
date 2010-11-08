@@ -3,6 +3,7 @@
 class ActiveRecord extends MyActiveRecord{
 	//attribute_missing -- does magical foreign key traversals and looks up children or linked objects
 	function __get($key){
+		if($key == 'id') return ($this->_primary_key);
 		if( method_exists($this,"$key")){
 			return call_user_func(  array($this, "$key" ) );
 		}elseif(in_array($key,ActiveRecord::Tables())){
@@ -21,7 +22,7 @@ class ActiveRecord extends MyActiveRecord{
 				return false;
 			}
 		}
-		trigger_error("ActiveRecord::__get() - could not find attribute: ".$key, E_USER_ERROR);
+		trigger_error("ActiveRecord::__get() - could not find attribute: ".$key . print_r(debug_backtrace()), E_USER_ERROR);
 	}
 	//as near to method_missing as PHP can get at the moment
 	function __call($method,$arguments){
