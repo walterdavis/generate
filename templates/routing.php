@@ -11,8 +11,6 @@ $self = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 $id = 0;
 $out = $flash = $head = '';
 session_start();
-require_once('_app/lib/inflector.php');
-require_once('_app/lib/inflections.php');
 require_once('_app/lib/MyActiveRecord.php');
 require_once('_app/lib/MyActionView.php');
 require_once('_app/lib/MyActionController.php');

@@ -79,7 +79,7 @@ Class MyActionView{
 		$links = $this->object->find_linked($strClass);
 		foreach(MyActiveRecord::FindAll($strClass) as $target){
 			$checked = (array_key_exists($target->{$target->_primary_key},$links)) ? ' checked="checked"' : '';
-			$out .= '<p><input type="hidden" name="' . tableize($strClass) . '[0]" value="0"/><input type="checkbox" class="right" name="' . tableize($strClass) . '[' . $target->{$target->_primary_key} . ']" id="' . tableize($strClass) . '_' . $target->_primary_key . '" value="1"' . $checked . ' /><label class="inline" for="' . tableize($strClass) . '_' . $target->_primary_key . '">' . h($target->{$target->get_label()}) . '</label></p>
+			$out .= '<p class="' . $this->cycle() . '"><input type="hidden" name="' . tableize($strClass) . '[0]" value="0"/><input type="checkbox" class="right" name="' . tableize($strClass) . '[' . $target->{$target->_primary_key} . ']" id="' . tableize($strClass) . '_' . $target->{$target->_primary_key} . '" value="1"' . $checked . ' /><label class="inline" for="' . tableize($strClass) . '_' . $target->{$target->_primary_key} . '">' . h($target->{$target->get_label()}) . '</label></p>
 ';
 		}
 		$out .= '
@@ -255,5 +255,15 @@ Class MyActionView{
 		$out = preg_replace('/<br \/>\s+<br \/>/m',"</p>\n<p>",$out);
 		return $out . "\n";
 	}
+	function cycle($odd = 'odd', $even = 'even'){
+		static $class;
+		if($class == $odd) {
+			$class = $even;
+		}else{
+			$class = $odd;
+		}
+		return $class;
+	}
+	
 }
 ?>

@@ -184,8 +184,8 @@ input.form_button {
 	float: right;
 }
 
-.odd {
-	background-color: #fefceb;
+.even {
+	background-color: #efefef;
 }
 
 .children_picker {

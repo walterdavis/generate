@@ -60,7 +60,7 @@
  *
  * Changelog 0.6 - 0.7
  *
- * 1. Use Rails plural rules to fit in with MyActionPack
+ * 1. Use Rails plural rules to fit in with MyActionPack (requires inflector and inflections)
  *
  * 2. Added IsBoolean, is_boolean to identify tinyint(1) fields as boolean properties
  *
@@ -114,9 +114,12 @@
  * @package		MyActiveRecord
  * @author		Jake Grimley <jake.grimley@mademedia.co.uk> 
  * @author		Walter Lee Davis <waltd@wdstudio.com>
- * @copyright	2006 - 2008 Jake Grimley, 2009 Walter Lee Davis
- * @version		0.6
+ * @copyright	2006 - 2008 Jake Grimley, 2009 - 2010 Walter Lee Davis
+ * @version		0.7
  */
+
+require_once('inflector.php');
+require_once('inflections.php');
 
 if(!defined('DEFAULT_LIMIT')) define('DEFAULT_LIMIT',10000);
 if(!defined('MYACTIVERECORD_CHARSET')) define('MYACTIVERECORD_CHARSET','UTF-8');
