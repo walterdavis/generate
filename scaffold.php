@@ -216,6 +216,7 @@ $model .= '	function save(){
 		</td>
 ';
 		$view_edit .= '<form action="<?= $self ?>" method="post" accept-charset="utf-8">
+	<p style="display:none"><input name="_utf8" type="hidden" value="&#9731;" /></p>
 ';
 		$view_create .= '<form action="<?= $self ?>" method="post" accept-charset="utf-8">
 ';
