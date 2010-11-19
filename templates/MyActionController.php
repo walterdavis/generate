@@ -38,9 +38,7 @@
 class MyActionController{
 	var $object;
 	function MyActionController(&$object=null,&$view=null){
-		if(!$object){
-			
-		}else{
+		if(is_object($object)){
 			$this->object = $object;
 		}
 		if(!$view){
@@ -54,11 +52,36 @@ class MyActionController{
 		return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
 			($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'));
 	}
+	/**
+	 * Generate 302 redirect to a different URL. Uses url_for to disambiguate URLs
+	 *
+	 * @param string $strNextAction Can be an action on the current model, a root-relative URL or a fully-qualified URI.
+	 * @return header 302
+	 * @author Walter Lee Davis
+	 */
 	function redirect_to($strNextAction){
 		header("Location: " . MyActionView::url_for($strNextAction,$this->object));
 		exit;
 	}
+	/**
+	 * handle a form submission, reload on errors, redirect on success
+	 *
+	 * @param string $strNextAction The url of the next page on success. 
+	 *     Uses redirect_to, which uses url_for, so see that for syntax.
+	 * @param string $strSuccessMessage The flash message on success
+	 * @return mixed
+	 * @author Walter Lee Davis
+	 */
 	function manage_result($strNextAction, $strSuccessMessage){
+		//copy nested objects' errors into the object
+		foreach(get_object_vars($this->object) as $k => $v){
+			if(is_object($v) && ($errors = $v->get_errors())){
+				$prefix = strtolower(get_class($v)) . '_';
+				foreach($errors as $key => $val){
+					$this->object->add_error($prefix . $key, $val);
+				}
+			}
+		}
 		if(!$this->object->get_errors()){
 			$_SESSION["flash"] = flash($strSuccessMessage);
 			$this->redirect_to($strNextAction);

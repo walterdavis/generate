@@ -66,7 +66,7 @@ if(isset($uri[0]) && file_exists(APP_ROOT . '/_app/controllers/' . strtolower($u
 		//allow button name to control action
 		$uri[1] = 'delete';
 	}
-	if(isset($uri[1]) && method_exists($controller,$uri[1])){
+	if(isset($uri[1]) && $uri[1] != 'index' && method_exists($controller,$uri[1])){
 		$page_title .= t(' | ' . ucfirst($uri[1]) . ' ' . $className);
 		$page_header = h(ucfirst($uri[1]) . ' ' . $className);
 		$out = $controller->{$uri[1]}($id);

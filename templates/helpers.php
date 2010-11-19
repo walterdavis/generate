@@ -8,7 +8,7 @@ function render_collection($strPartial, $objects=array()){
 }
 function render_partial($strPartial, $object=null){
 	$self = (isset($GLOBALS['self'])) ? $GLOBALS['self'] : '';
-	$parts = preg_split('/\//',$strTemplate, -1, PREG_SPLIT_NO_EMPTY);
+	$parts = preg_split('/\//',$strPartial, -1, PREG_SPLIT_NO_EMPTY);
 	$path = APP_ROOT . '/_app/views/';
 	$view = new ActionView();
 	if(is_object($object)){
@@ -50,6 +50,14 @@ function render($strTemplate, $object=null, $new_object = null){
 	}
 	$path .= implode('/',$parts);
 	ob_start();
+	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
+		if(@file_exists($path . $ext)){
+			include($path . $ext);
+			return ob_get_clean();
+		}
+	}
+	//try again in the root folder, just in case
+	$path = APP_ROOT . '/';
 	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
 		if(@file_exists($path . $ext)){
 			include($path . $ext);
