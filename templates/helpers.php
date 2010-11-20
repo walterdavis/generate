@@ -17,13 +17,21 @@ function render_partial($strPartial, $object=null){
 	if(count($parts) == 1 && is_object($object)){
 		$path .= tableize(get_class($object)) . '/';
 	}
-	$file = '_' . array_pop($parts);
+	$file = $pfile = '_' . array_pop($parts);
 	$path .= implode('/',$parts);
 	$path .= '/' . $file;
 	ob_start();
 	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
 		if(@file_exists($path . $ext)){
 			include($path . $ext);
+			return ob_get_clean();
+		}
+	}
+	//try again in the root folder
+	$path = APP_ROOT . '/';
+	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
+		if(@file_exists($path . $ext)){
+			include($path . $pfile . $ext);
 			return ob_get_clean();
 		}
 	}
