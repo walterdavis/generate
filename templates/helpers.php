@@ -11,13 +11,16 @@ function render_partial($strPartial, $object=null){
 	$parts = preg_split('/\//',$strPartial, -1, PREG_SPLIT_NO_EMPTY);
 	$path = APP_ROOT . '/_app/views/';
 	$view = new ActionView();
+	$pfile = '_';
 	if(is_object($object)){
 		$view->object = $object;
 	}
 	if(count($parts) == 1 && is_object($object)){
 		$path .= tableize(get_class($object)) . '/';
+		$pfile .= tableize(get_class($object)) . '_'
 	}
-	$file = $pfile = '_' . array_pop($parts);
+	$file = '_' . array_pop($parts);
+	$pfile .= array_pop($parts);
 	$path .= implode('/',$parts);
 	$path .= '/' . $file;
 	ob_start();
