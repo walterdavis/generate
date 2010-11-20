@@ -1,0 +1,199 @@
+<item-action name="com.wdstudio.MyActionViewHelper" title="MyActionViewHelper">
+<action-version version="0.1">
+“MyActionViewHelper” Action
+Walter Davis Studio 2010
+</action-version>
+<action-file var name="partial" keepwithhtml>
+<action-checkbox title="Move Form Into Partial" name = "addform" default=no/>
+<action-text var name="before" />
+<action-text var name="after" />
+<action-checkbox title="Remove IDs" name = "removeIds" default=no/>
+<action-checkbox title="Remove Style Tag" name = "removeStyle" default=no/>
+<action-checkbox title="Remove Positioning" name = "removePositioning" default=no/>
+<action-checkbox title="Remove Dimensions" name = "removeDimensions" default=no/>
+<action-label name="model_explanation" title="(Enter the Model as its database table name - lower-case and plural)" />
+<action-text name="modelName" title="Model Name" default="widgets">
+<action-text name="myName" title="View Name">
+<action-popup name="extension" title="File Type">
+<value name="php">
+<value name="html">
+<value name="html.php">
+</action-popup>
+<action-text name="viewFilename" title="Filename" />
+<action-button name="update" title="Update" advance="no" width="60" />
+<action-button name="Insert Before" onclick=EditCode('before'); />
+<action-button name="Insert After" onclick=EditCode('after'); />
+<action-javascript>
+	function makePartial(myName,textStream){
+		textStream.fwConvertLineEndings = true;
+		textStream = fwEncode(textStream);
+		outFile = new FWFile;
+		if (outFile.fwOpenWrite(fwParameters['viewFilename'],true,"TEXT","R*ch")){
+			outFile.fwWrite(textStream);
+			outFile.fwClose();
+// 			var path = fwConvertFilePath(outFile.fwPathName).toString().replace(/ /g, "\\ ");
+// 			var command = 'textutil -convert txt -encoding UTF-8 -extension html '+path;
+// 			var result = fwShellCommand(command);
+			fwParameters["partial"].fwSpecify(outFile);
+			var partial = fwParameters["partial"].toString();
+			return partial;
+		}		
+		return null;
+	}
+	function EditCode(param){
+	var mycustomcode = fwParameters[param].toString();
+	var myprompt = "Extra code inserted " + param + " this template element:";
+	var mycustomcodeprompt = fwBigPrompt(myprompt, mycustomcode);
+	if (mycustomcodeprompt != null) { //if the cancel button was not hit
+		if (mycustomcodeprompt != mycustomcode) {//check that the code has changed
+			fwParameters[param].fwValue = mycustomcodeprompt;
+		}
+	}
+}
+
+
+	function SetCSSAttribute(tag, fieldName, attributeName, attributeValue) { 
+		// Sets a "CSS" attribute such as "position:absolute" in a tag value 
+		// Passing an attribute value of null removes that attribute entirely
+		if (tag==null) return; 
+		var tagField = tag[fieldName]; 
+		if (tagField == null){
+			if(attributeValue != null) tag[fieldName] = '"'+attributeName+':'+attributeValue+'"'; 
+		}else{
+			var tagField = tagField.toString();
+			var pairs = tagField.slice(1,-1).split(';');
+			var out = new Array();
+			if(attributeValue != null && tagField.indexOf(attributeName) < 0) out.push(attributeName+':'+attributeValue);
+			for(i in pairs){
+				pairs[i] = pairs[i].replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1"); //javascript equivalent of trim
+				if(pairs[i].slice(0,pairs[i].indexOf(':')) == attributeName) {
+					if(attributeValue != null) out.push(attributeName+':'+attributeValue);
+				}else{
+					out.push(pairs[i]);
+				}
+			}
+			tag[fieldName]= fwQuote(out.join('; ')); 
+		}
+	} 
+
+	function fwInterface(){
+		if(fwParameters['myName']){
+			fwParameters['removeDimensions'].fwEnable = ! fwParameters['removeStyle'].fwBoolValue;
+			fwParameters['removePositioning'].fwEnable = ! fwParameters['removeStyle'].fwBoolValue;
+			if(fwParameters['myName'].fwValue == ''){
+				if(fwItem.toString().match(/^[a-zA-Z]+[_a-zA-Z0-9]*$/)){
+					fwParameters['myName'].fwValue = fwItem.toString();
+				}else{
+					fwAlert('Please enter a valid name for your partial');
+				}
+			}
+			if(fwParameters['myName'].fwValue != ''){
+				if( ! fwParameters['myName'].fwValue.toString().match(/^[a-zA-Z]+[_a-zA-Z0-9]*$/)){
+					fwAlert('Please enter a valid name for your partial');
+				}
+			}
+			fwParameters['viewFilename'].fwEnable = false
+			var partialName = fwParameters['viewFilename'];
+			var v = fwParameters['myName'].fwValue.toString();
+			var m = fwParameters['modelName'].fwValue.toString();
+			return partialName.fwValue = ('_' + m + '_' + v + '.' + fwParameters['extension'].fwValue.toString());
+		}
+	}
+	function fwParameterChanged(newParam,oldParam){
+		return fwInterface();
+	}
+	function addComment(thisObj){
+		var test = thisObj.fwToHTML();
+		var filter = '';
+		if(test.match(/\r\n/)) filter = '\r\n';
+		if(filter == '' && test.match(/\r/)) filter = '\r';
+		if(filter == '' && test.match(/\n/)) filter = '\n';
+		var startComment = fwParameters.before.toString().replace(/\r\n|\r|\n/gi, filter);
+		startComment.fwConvertLineEndings = true;
+		var endComment = fwParameters.after.toString().replace(/\r\n|\r|\n/gi, filter);
+		endComment.fwConvertLineEndings = true;
+		if(startComment.length + endComment.length > 0){
+			var dummy = thisObj.fwAddEnclosing("",true);
+			var c = dummy.fwAddRawln(startComment);
+			dummy.fwMove(thisObj,c);//this puts the comment first
+			dummy.fwAddRawln('');
+			dummy.fwAddRaw(endComment);
+			return thisObj = dummy;
+		}
+		return thisObj;
+	}
+
+
+	function fwAfterEndHTML()
+	{
+		if(fwItem){
+			var container = fwDocument.fwTags.fwFind(fwItem);
+			if(container){
+				if(container == 'TD' || container == 'td') container = container.fwFindEnclosing('tr');
+				if(container.toString() == '') container = container.fwAddEnclosing("div",true);
+				if(fwParameters['addform'].fwBoolValue && container.fwFindEnclosing("form")) {
+					form = container.fwFindEnclosing("form");
+					inner = container.fwFind(['div','table']);
+					if(inner && inner.fwFind(['input','select','textarea'])){
+						f = inner.fwAddEnclosing("form",true);
+						f['method'] = (!!form.method) ? fwQuote(form.method) : fwQuote('');
+						f['action'] = form.action;
+						if(form.id) f['id'] = form.id;
+					}
+				}else{
+					form = undefined;
+				}
+				if(fwParameters['removePositioning'].fwBoolValue == true){
+					SetCSSAttribute(container,"style","z-index",null);
+					SetCSSAttribute(container,"style","top",null);
+					SetCSSAttribute(container,"style","left",null);
+					SetCSSAttribute(container,"style","bottom",null);
+					SetCSSAttribute(container,"style","right",null);
+					SetCSSAttribute(container,"style","position","relative");
+				}
+				if(fwParameters['removeDimensions'].fwBoolValue == true){
+					SetCSSAttribute(container,"style","width",null);
+					SetCSSAttribute(container,"style","height",null);
+				}
+				if(fwParameters['removeStyle'].fwBoolValue == true){
+					container.style = null;
+				}
+				if(fwParameters['removeIds'].fwBoolValue == true){
+					var children = container.fwFindAll('div');
+					for (i in children) {
+						children[i].id = null;
+					}
+					container.id = null;
+				}
+				//wrap container with before and after code
+				container = addComment(container);
+				var code = container.fwToHTML();
+				if(! fwFolder.partials) fwFolder.partials = new Array();
+				if( ! fwParameters['myName'].fwValue.toString().match(/^[a-zA-Z]+[_a-zA-Z0-9]*$/)){
+					fwAbort('Please enter a valid name for your partial');
+				}
+				var nameField = fwParameters['viewFilename'];
+				var nameReturned = makePartial(nameField,code);
+				if(nameField != nameReturned){
+					alert("Warning! Duplicate partial name '" + nameField.fwValue + "' was changed to '" + nameReturned + "' during publishing.");
+					fwParameters['viewFilename'].fwValue = nameReturned;
+					var ext = new RegExp('\.' + fwParameters['extension']);
+					var mod = new RegExp('_' + fwParameters['modelName'] + '_');
+					fwParameters['myName'].fwValue = nameReturned.replace(ext,'').replace(mod,'');
+				}
+				fwFolder.partials.push(nameReturned);
+				container.fwDelete();
+				if(!!form){
+					content = form.fwFindAllContent();
+					dummy = form.fwAddEnclosing("",false);
+					dummy.fwMove(content);
+					form.fwDelete();
+				}
+			}
+		}
+	}
+
+
+</action-javascript>
+
+</item-action>
