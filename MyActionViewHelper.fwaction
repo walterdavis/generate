@@ -19,8 +19,7 @@ Walter Davis Studio 2010
 <value name="html">
 <value name="html.php">
 </action-popup>
-<action-text name="viewFilename" title="Filename" />
-<action-button name="update" title="Update" advance="no" width="60" />
+<action-text name="viewFilename" title="Filename" width="300" />
 <action-button name="Insert Before" onclick=EditCode('before'); />
 <action-button name="Insert After" onclick=EditCode('after'); />
 <action-javascript>
@@ -76,6 +75,13 @@ Walter Davis Studio 2010
 		}
 	} 
 
+	function updatePartialName(newModel,newView,newExtension){
+		var partialName = fwParameters['viewFilename'];
+		var v = (!!newView && newView.length > 0) ? newView : fwParameters['myName'].fwValue.toString();
+		var m = (!!newModel && newModel.length > 0) ? newModel : fwParameters['modelName'].fwValue.toString();
+		var e = (!!newExtension && newExtension.length > 0) ? newExtension.toString() : fwParameters['extension'].fwValue.toString();
+		partialName.fwValue = '_' + m  + '_' + v + '.' + e;
+	}
 	function fwInterface(){
 		if(fwParameters['myName']){
 			fwParameters['removeDimensions'].fwEnable = ! fwParameters['removeStyle'].fwBoolValue;
@@ -93,14 +99,28 @@ Walter Davis Studio 2010
 				}
 			}
 			fwParameters['viewFilename'].fwEnable = false
-			var partialName = fwParameters['viewFilename'];
-			var v = fwParameters['myName'].fwValue.toString();
-			var m = fwParameters['modelName'].fwValue.toString();
-			return partialName.fwValue = ('_' + m + '_' + v + '.' + fwParameters['extension'].fwValue.toString());
+			updatePartialName();
 		}
 	}
 	function fwParameterChanged(newParam,oldParam){
-		return fwInterface();
+		//alert(newParam.fwValue.toString() + ':' + oldParam.fwValue.toString())
+		var v = fwParameters['myName'].fwValue.toString();
+		var m = fwParameters['modelName'].fwValue.toString();
+		var e = fwParameters['extension'].fwValue.toString();
+		switch(newParam.fwName){
+			case 'myName':
+				v = newParam.fwValue.toString();
+				break;
+			case 'modelName':
+				m = newParam.fwValue.toString();
+				break;
+			case 'extension':
+				e = newParam.fwValue.toString();
+				break;
+			default:
+				break;
+		}
+		updatePartialName( m, v, e );
 	}
 	function addComment(thisObj){
 		var test = thisObj.fwToHTML();
