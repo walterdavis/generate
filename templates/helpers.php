@@ -17,7 +17,7 @@ function render_partial($strPartial, $object=null){
 	}
 	if(count($parts) == 1 && is_object($object)){
 		$path .= tableize(get_class($object)) . '/';
-		$pfile .= tableize(get_class($object)) . '_'
+		$pfile .= tableize(get_class($object)) . '_';
 	}
 	$file = '_' . array_pop($parts);
 	$pfile .= array_pop($parts);
