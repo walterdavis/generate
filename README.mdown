@@ -118,7 +118,7 @@ recommend that you place the `generated_code` folder in version
 control so you can merge your edits or roll back any overwrites.
 
 ##Install the Site
-Move the generated folder `[table name]` into a new location in your Web server, 
+Move the generated folder `[dbname]` into a new location in your Web server, 
 and update your Apache configuration files to serve your application from that new location.
 The name of the containing folder is not important, and you can copy the contents of
 the folder into your `htdocs` folder or local equivalent. Just be sure you copy the (hidden) 
