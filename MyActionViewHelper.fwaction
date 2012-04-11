@@ -36,7 +36,8 @@ Walter Davis Studio 2010
 			fwParameters["partial"].fwSpecify(outFile);
 			var partial = fwParameters["partial"].toString();
 			return partial;
-		}		
+		}
+                fwParameters['viewFilename'].fwClear();
 		return null;
 	}
 	function EditCode(param){
