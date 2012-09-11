@@ -5,9 +5,11 @@ define('MYACTIVERECORD_CONNECTION_STR', 'DSN');
 define('MYACTIVERECORD_CHARSET', 'MARCHAR');
 define('DEFAULT_LIMIT', 'DEFLIMIT');
 define('APP_ROOT', dirname(__FILE__));
+define('FOLDER', '/');
+define('HOST', (isset($_SERVER['HTTPS']) && false != $_SERVER['HTTPS']) ? 'https://' : 'http://' . $_SERVER['SERVER_NAME']);
 date_default_timezone_set('TZ');
 $page_title = $page_header = 'Site Name';
-$self = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+$self = $_SERVER['REQUEST_URI'];
 $id = 0;
 $out = $flash = $head = '';
 session_start();
@@ -37,9 +39,9 @@ if(isset($_SESSION["flash"])){
 }
 //routing happens here
 $uri = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
-//If your application is in a subfolder, you can either array_shift($uri) or adjust your
-//uri index numbers upward below. If you do the shift trick, then be sure to add a base HREF 
-//tag to your layouts/index.html.php file.
+foreach(preg_split('/\//', FOLDER, -1, PREG_SPLIT_NO_EMPTY)){
+  array_shift($uri);
+}
 if(!isset($uri[0]) || empty($uri[0])){
 	//add root view actions here
 	//$uri[0] = 'some_controller';
