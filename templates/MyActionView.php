@@ -236,19 +236,15 @@ Class MyActionView{
 		}
 		return '<a href="' . $this->url_for($strAction) . '"' . $html_extras . '>' . $strText . '</a>';
 	}
-	function UrlFor($object,$strAction){
-		if(substr($strAction,0,1) == '/') return $strAction;
+	function UrlFor($object,$strAction, $only_path = true){
+		if(substr($strAction,0,1) == '/' || preg_match('/^(f|ht)tps?/', $strAction)) return $strAction;
 		$controller = tableize(get_class($object));
-		$link = "/" . $controller . "/" . $strAction;
+		$link = ($only_path ? '' : HOST . FOLDER) . $controller . "/" . $strAction;
 		if($object->{$object->_primary_key} > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->{$object->_primary_key};
 		return $link;
 	}
-	function url_for($strAction){
-		if(substr($strAction,0,1) == '/') return $strAction;
-		$controller = tableize(get_class($this->object));
-		$link = "/" . $controller . "/" . $strAction;
-		if($this->object->{$this->object->_primary_key} > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $this->object->{$this->object->_primary_key};
-		return $link;
+	function url_for($strAction, $only_path = true){
+		return MyActionView::UrlFor($this->object, $strAction, $only_path);
 	}
 	function simple_format($strKey){
 		$out = '<p>' . nl2br($this->object->h($strKey)) . '</p>';
