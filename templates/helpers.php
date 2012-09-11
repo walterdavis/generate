@@ -31,7 +31,7 @@ function render_partial($strPartial, $object=null){
 		}
 	}
 	//try again in the root folder
-	$path = APP_ROOT . '/';
+	$path = APP_ROOT . FOLDER;
 	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
 		if(@file_exists($path . $ext)){
 			include($path . $pfile . $ext);
@@ -68,7 +68,7 @@ function render($strTemplate, $object=null, $new_object = null){
 		}
 	}
 	//try again in the root folder, just in case
-	$path = APP_ROOT . '/';
+	$path = APP_ROOT . FOLDER;
 	foreach(array('','.php','.html','.html.php','.phtml') as $ext){
 		if(@file_exists($path . $ext)){
 			include($path . $ext);
@@ -89,21 +89,25 @@ function t($string){
 //flash messages built here
 function flash($arrMessages,$strClass=''){
 	if(empty($strClass)) $strClass = 'flash';
-	$out = '<ul class="' . $strClass . '">';
-	foreach((array)$arrMessages as $m) $out .=  '<li>' . $m . '</li>';
-	return $out . '</ul>';
+	$out = '<ul class="' . $strClass . '">' . "\n";
+	foreach((array)$arrMessages as $m) $out .=  '<li>' . $m . "</li>\n";
+	return $out . "</ul>\n";
 }
 function build_navbar(){
 	//build automatic navigation bar
-	$navigation = '<ul class="navigation"><li><a href="/">Home</a></li>';
+	$navigation = '<ul class="navigation">
+	<li><a href="' . FOLDER . '">Home</a></li>
+';
 	$models = scandir(APP_ROOT . '/_app/models');
 	foreach($models as $m){
 		if(!is_dir(APP_ROOT . '/_app/models/' . $m) && file_exists(APP_ROOT . '/_app/models/' . $m) && substr($m,0,1) != '.' && substr($m,0,1) != '_') {
 			$m = substr($m,0,strrpos($m,'.'));
-			$navigation .= '<li><a href="/' . tableize($m) . '">' . pluralize(humanize($m)) . '</a></li>';
+			$navigation .= '  <li><a href="' . FOLDER . tableize($m) . '">' . pluralize(humanize($m)) . '</a></li>
+';
 		}
 	}
-	$navigation .= '</ul>';
+	$navigation .= '</ul>
+';
 	return $navigation;
 }
 function load_models(){
@@ -172,6 +176,6 @@ function send_header($content='text/html'){
 	return header('Content-type: ' . $content);
 }
 function send_response_code($code=200){
-	return header('x',true,$code);
+	return header(':',true,$code);
 }
 ?>
