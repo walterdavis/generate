@@ -60,7 +60,7 @@ class MyActionController{
 	 * @author Walter Lee Davis
 	 */
 	function redirect_to($strNextAction){
-		header("Location: " . MyActionView::url_for($strNextAction,$this->object));
+		header("Location: " . MyActionView::url_for($strNextAction,$this->object, false));
 		exit;
 	}
 	/**
