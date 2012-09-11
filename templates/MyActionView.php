@@ -239,7 +239,7 @@ Class MyActionView{
 	function UrlFor($object,$strAction, $only_path = true){
 		if(substr($strAction,0,1) == '/' || preg_match('/^(f|ht)tps?/', $strAction)) return $strAction;
 		$controller = tableize(get_class($object));
-		$link = ($only_path ? '' : HOST . FOLDER) . $controller . "/" . $strAction;
+		$link = ($only_path ? '' : HOST) . FOLDER . $controller . "/" . $strAction;
 		if($object->{$object->_primary_key} > 0 && $strAction != "index" && $strAction != "create") $link .= "/" . $object->{$object->_primary_key};
 		return $link;
 	}
