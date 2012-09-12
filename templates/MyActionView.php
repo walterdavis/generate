@@ -198,7 +198,7 @@ Class MyActionView{
 							$field_html = array();
 						}
 					}
-					if(false !== array_search($name,array('added_at','added_on','updated_at','updated_on'))) $field_html['disabled'] = 'disabled';
+					if(false !== array_search($name,array('created_at','created_on','added_at','added_on','updated_at','updated_on'))) $field_html['disabled'] = 'disabled';
 					$out = '<label for="' . $name . '">' . $label . '</label><input type="text" name="' . $name . '" value="<?=$object->h(\'' . $name . '\')?>" id="' . $name . '"%s/>';
 					break;
 			}
