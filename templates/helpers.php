@@ -39,7 +39,7 @@ function render_partial($strPartial, $object=null){
 		}
 	}
 	ob_end_clean();
-	trigger_error( $path . '.php does not exist' );
+	trigger_error( $path . '.* does not exist' );
 }
 function render($strTemplate, $object=null, $new_object = null){
 	$self = (isset($GLOBALS['self'])) ? $GLOBALS['self'] : '';
