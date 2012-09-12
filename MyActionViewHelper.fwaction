@@ -1,3 +1,4 @@
+<action-encoding>UTF-8</action-encoding>
 <item-action name="com.wdstudio.MyActionViewHelper" title="MyActionViewHelper">
 <action-version version="0.2">
 “MyActionViewHelper” Action
@@ -15,9 +16,9 @@ Walter Davis Studio 2010, 2012
 <action-text name="modelName" title="Model Name" default="widgets">
 <action-text name="myName" title="View Name">
 <action-popup name="extension" title="File Type">
-<value name="php">
 <value name="html">
-<value name="html.php">
+<value name="html.php" default="yes">
+<value name="php">
 </action-popup>
 <action-text name="viewFilename" title="Filename" width="300" />
 <action-button name="Insert Before" onclick=EditCode('before'); />
@@ -31,9 +32,6 @@ function makePartial(myName,textStream){
     fwParameters['partial'].fwClear();
     outFile.fwWrite(textStream);
     outFile.fwClose();
-    // 			var path = fwConvertFilePath(outFile.fwPathName).toString().replace(/ /g, "\\ ");
-    // 			var command = 'textutil -convert txt -encoding UTF-8 -extension html '+path;
-    // 			var result = fwShellCommand(command);
     fwParameters["partial"].fwSpecify(outFile);
     var partial = fwParameters["partial"].toString();
     fwParameters['partial'].fwClear();
