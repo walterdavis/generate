@@ -39,7 +39,7 @@ if(isset($_SESSION["flash"])){
 }
 //routing happens here
 $uri = preg_split('/\//',$_SERVER['REQUEST_URI'],-1,PREG_SPLIT_NO_EMPTY);
-foreach(preg_split('/\//', FOLDER, -1, PREG_SPLIT_NO_EMPTY)){
+foreach(preg_split('/\//', FOLDER, -1, PREG_SPLIT_NO_EMPTY) as $a){
   array_shift($uri);
 }
 if(!isset($uri[0]) || empty($uri[0])){
