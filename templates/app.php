@@ -3,8 +3,9 @@
 class ActiveRecord extends MyActiveRecord{
 	//attribute_missing -- does magical foreign key traversals and looks up children or linked objects
 	function __get($key){
+	  $called_for = $key;
 		if($key == 'id') return ($this->_primary_key);
-		if( method_exists($this,"$key")){
+		if( method_exists($this, $key)){
 			return call_user_func(  array($this, "$key" ) );
 		}elseif(in_array($key,ActiveRecord::Tables())){
 			//might be children or linked
@@ -16,13 +17,12 @@ class ActiveRecord extends MyActiveRecord{
 			}
 		}elseif(in_array(tableize($key),ActiveRecord::Tables())){
 			if($p = $this->find_parent(classify($key))) {
-				$key = $p->get_label();
-				return $p->$key;
+				return $p->get_label();
 			}else{
 				return false;
 			}
 		}
-		trigger_error("ActiveRecord::__get() - could not find attribute: ".$key . print_r(debug_backtrace()), E_USER_ERROR);
+		trigger_error("ActiveRecord::__get() - could not find attribute: " . $called_for . print_r(debug_backtrace()), E_USER_ERROR);
 	}
 	//as near to method_missing as PHP can get at the moment
 	function __call($method,$arguments){
@@ -90,9 +90,9 @@ class ActiveRecord extends MyActiveRecord{
 	function get_value($fieldname){
 		if(substr($fieldname,-3) == '_id'){
 			$classname = classify(substr($fieldname, 0, -3));
-			//see if it's a classname
-			if($class = ActiveRecord::Create($classname)){
-				$fieldname = $classname;
+			//see if we can get the parent
+			if($class = $this->find_parent($classname)){
+				return $class->{$class->get_label()};
 			}
 		}elseif($this->is_boolean($fieldname)){
 			return ($this->$fieldname > 0) ? '✓' : '';
